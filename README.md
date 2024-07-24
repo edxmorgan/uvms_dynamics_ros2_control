@@ -14,7 +14,7 @@ Ros2_control plugin providing virtual underwater vehicle and manipulator capabil
 
 ```bash
 cd ~/your_workspace/src
-git clone https://github.com/edxmorgan/tf2_broadcaster
+git clone https://github.com/edxmorgan/uvms_ros2_controller
 ```
 
 ### Include in package.xml
