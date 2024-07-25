@@ -17,7 +17,7 @@ namespace casadi_uvms
 
         Dynamics() = default;
 
-        void usage_cplusplus_checks(const std::string &name, const std::string &bin_name);
+        void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);
         /**
          * @brief checks casadi function loader works well
          *

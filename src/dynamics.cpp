@@ -1,8 +1,8 @@
 #include "uvms_controller/dynamics.hpp"
 
-void casadi_uvms::Dynamics::usage_cplusplus_checks(const std::string &name, const std::string &bin_name)
+void casadi_uvms::Dynamics::usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name)
 {
-    std::cout << "---" << std::endl;
+    std::cout << "---" << node_name << "---" << std::endl;
     std::cout << "Usage from CasADi C++:" << std::endl;
     std::cout << std::endl;
 

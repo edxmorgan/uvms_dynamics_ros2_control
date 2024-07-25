@@ -4,10 +4,6 @@ uvms_controller:
     default_value: [],
     description: "Name of the joints to control",
      read_only: true,
-    validation: {
-      unique<>: null,
-      not_empty<>: null,
-    }
   }
   
   command_interface_name: {
@@ -15,9 +11,6 @@ uvms_controller:
     default_value: "",
     description: "Name of the interface used by the controller for writing commands to the hardware.",
     read_only: true,
-    validation: {
-      not_empty<>: null,
-    }
   }
 
   state_interface_names: {
@@ -25,8 +18,4 @@ uvms_controller:
     default_value: [],
     description: "Name of the interfaces used by the controller getting hardware states",
     read_only: true,
-    validation: {
-      not_empty<>: null,
-      size_lt<>: 3,
-    }
   }

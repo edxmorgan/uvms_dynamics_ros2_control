@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>uvms_ros2_controller</name>
+  <name>uvms_controller</name>
   <version>4.5.0</version>
   <description>Providing Underwater vehicle and manipulator system dynamics and controls capabilities in ros2_controller</description>
   <maintainer email="emorg31@lsu.edu">Edward Morgan</maintainer>

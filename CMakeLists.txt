@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(uvms_ros2_controller LANGUAGES CXX)
+project(uvms_controller LANGUAGES CXX)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
   add_compile_options(-Wall -Wextra -Wpedantic -Werror=conversion -Werror=unused-but-set-variable
@@ -25,31 +25,31 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 endforeach()
 
 generate_parameter_library(
-  udwadia_kalaba_controller_parameters
-  src/udwadia_kalaba_controller_parameters.yaml
+  uvms_controller_parameters
+  src/uvms_controller_parameters.yaml
 )
 
-add_library(udwadia_kalaba_controller SHARED
-  src/udwadia_controllers_base.cpp
-  src/udwadia_kalaba_controller.cpp
+add_library(uvms_controller SHARED
+  src/uvms_base.cpp
+  src/uvms_controller.cpp
   src/dynamics.cpp
 )
 
-target_link_libraries(udwadia_kalaba_controller PUBLIC casadi)
+target_link_libraries(uvms_controller PUBLIC casadi)
 
-target_compile_features(udwadia_kalaba_controller PUBLIC cxx_std_17)
-target_include_directories(udwadia_kalaba_controller PUBLIC
+target_compile_features(uvms_controller PUBLIC cxx_std_17)
+target_include_directories(uvms_controller PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/udwadia_kalaba_controller>
+  $<INSTALL_INTERFACE:include/uvms_controller>
 )
-target_link_libraries(udwadia_kalaba_controller PUBLIC
-  udwadia_kalaba_controller_parameters
+target_link_libraries(uvms_controller PUBLIC
+  uvms_controller_parameters
 )
-ament_target_dependencies(udwadia_kalaba_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_target_dependencies(uvms_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(udwadia_kalaba_controller PRIVATE "UDWADIA_KALABA_CONTROLLER_BUILDING_DLL")
-pluginlib_export_plugin_description_file(controller_interface uke_plugin.xml)
+target_compile_definitions(uvms_controller PRIVATE "UVMS_CONTROLLER_BUILDING_DLL")
+pluginlib_export_plugin_description_file(controller_interface uvms_plugin.xml)
 
 
 if(BUILD_TESTING)
@@ -75,14 +75,14 @@ install(
 install(
   TARGETS
     ${PROJECT_NAME}
-    udwadia_kalaba_controller_parameters
-  EXPORT export_udwadia_kalaba_controller
+    uvms_controller_parameters
+  EXPORT export_uvms_controller
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   INCLUDES DESTINATION include
 )
 
-ament_export_targets(export_udwadia_kalaba_controller HAS_LIBRARY_TARGET)
+ament_export_targets(export_uvms_controller HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()
