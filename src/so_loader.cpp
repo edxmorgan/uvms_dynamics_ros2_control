@@ -1,6 +1,6 @@
-#include "uvms_controller/dynamics.hpp"
+#include "uvms_controller/so_loader.hpp"
 
-void casadi_uvms::Dynamics::usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name)
+void casadi_uvms::FunctionLoader::usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name)
 {
     std::cout << "---" << node_name << "---" << std::endl;
     std::cout << "Usage from CasADi C++:" << std::endl;
@@ -18,7 +18,7 @@ void casadi_uvms::Dynamics::usage_cplusplus_checks(const std::string &name, cons
     std::cout << "result (1): " << res.at(1) << std::endl;
 }
 
-Function casadi_uvms::Dynamics::load_casadi_fun(const std::string &name, const std::string &bin_name)
+Function casadi_uvms::FunctionLoader::load_casadi_fun(const std::string &name, const std::string &bin_name)
 {
     // Use CasADi's "external" to load compiled function
     return external(name, bin_name);

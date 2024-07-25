@@ -32,7 +32,7 @@ generate_parameter_library(
 add_library(uvms_controller SHARED
   src/uvms_base.cpp
   src/uvms_controller.cpp
-  src/dynamics.cpp
+  src/so_loader.cpp
 )
 
 target_link_libraries(uvms_controller PUBLIC casadi)

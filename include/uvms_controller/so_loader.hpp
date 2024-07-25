@@ -1,5 +1,5 @@
-#ifndef UVMS_CONTROLLER__DYNAMICS_HPP_
-#define UVMS_CONTROLLER__DYNAMICS_HPP_
+#ifndef UVMS_CONTROLLER__SO_LOADER_HPP_
+#define UVMS_CONTROLLER__SO_LOADER_HPP_
 
 #include <string>
 #include <algorithm>
@@ -9,13 +9,14 @@ using namespace casadi;
 
 namespace casadi_uvms
 {
-    class Dynamics
+    class FunctionLoader
     {
 
     public:
+        Function tester; // uvms casadi tester
         Function dynamics; // uvms dynamics
 
-        Dynamics() = default;
+        FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);
         /**
@@ -32,5 +33,5 @@ namespace casadi_uvms
          * @param bin_name File name of the shared library
          */
     };
-} // namespace casadi_reach_alpha_5
-#endif // ROS2_CONTROL_BLUE_REACH_5__JOINT_HPP_
+} // namespace casadi_uvms
+#endif // UVMS_CONTROLLER__SO_LOADER_HPP_

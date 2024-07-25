@@ -28,7 +28,7 @@
 #include <casadi/casadi.hpp>
 
 #include "uvms_controller/visibility_control.h"
-#include "uvms_controller/dynamics.hpp"
+#include "uvms_controller/so_loader.hpp"
 
 namespace uvms_controller
 {
@@ -86,7 +86,7 @@ namespace uvms_controller
     virtual controller_interface::CallbackReturn read_parameters() = 0;
     
     // Store the dynamics function for the whole body robot
-    casadi_uvms::Dynamics dynamics_service;
+    casadi_uvms::FunctionLoader fun_service;
     
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;

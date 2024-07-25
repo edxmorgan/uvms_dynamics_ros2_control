@@ -45,7 +45,8 @@ namespace uvms_controller
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::CasADi version: %s", casadi_version.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::Testing casadi ready for operations");
       // Use CasADi's "external" to load the compiled dynamics functions
-      dynamics_service.usage_cplusplus_checks("test", "libtest.so","UVMS Controller");
+      fun_service.usage_cplusplus_checks("test", "libtest.so","UVMS Controller");
+      fun_service.dynamics = fun_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
     }
     catch (const std::exception &e)
     {
@@ -96,6 +97,55 @@ namespace uvms_controller
   controller_interface::return_type UvmsControllerBase::update(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
+   // std::vector<double> uvms_x0 = {
+    //     robot_structs_.hw_vehicle_struct_.current_state_.position_x,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.position_y,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.position_z,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.orientation_w,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.orientation_x,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.orientation_y,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.orientation_z,
+    //     0.1, 0.2, 0.1, 0.2,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.u,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.v,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.w,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.p,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.q,
+    //     robot_structs_.hw_vehicle_struct_.current_state_.r,
+    //     0.0, 0.0, 0.0, 0.0};
+    // std::vector<double> uvms_u0 = {
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[0].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[1].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[2].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[3].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[4].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[5].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[6].command_state_.effort,
+    //     robot_structs_.hw_vehicle_struct_.hw_thrust_structs_[7].command_state_.effort, 0.0, 0.0, 0.0, 0.0};
+
+    // std::vector<double> uvms_vc = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    // std::vector<double> uvms_params = {1e-5, 1e-5, 1e-5, 1e-6, 3, 2, 0.85, 0.065};
+    // std::vector<double> uvms_base_T = {0, 0, 0, 0, 0, 0};
+    // std::vector<DM> uvsm_arg = {DM(uvms_x0), DM(uvms_u0), DM(delta_seconds), DM(uvms_vc), DM(uvms_params), DM(uvms_base_T),
+    //                             casadi::DM::eye(21), casadi::DM::eye(14), casadi::DM::eye(21)};
+
+    // std::vector<DM> uvms_dynamic_response = dynamics_service.uvms_dynamics(uvsm_arg);
+    // forward_dynamics_res = std::vector<double>(uvms_dynamic_response.at(0));
+
+    // robot_structs_.hw_vehicle_struct_.current_state_.position_x = forward_dynamics_res[0];
+    // robot_structs_.hw_vehicle_struct_.current_state_.position_y = forward_dynamics_res[1];
+    // robot_structs_.hw_vehicle_struct_.current_state_.position_z = forward_dynamics_res[2];
+    // robot_structs_.hw_vehicle_struct_.current_state_.orientation_w = forward_dynamics_res[3];
+    // robot_structs_.hw_vehicle_struct_.current_state_.orientation_x = forward_dynamics_res[4];
+    // robot_structs_.hw_vehicle_struct_.current_state_.orientation_y = forward_dynamics_res[5];
+    // robot_structs_.hw_vehicle_struct_.current_state_.orientation_z = forward_dynamics_res[6];
+
+    // robot_structs_.hw_vehicle_struct_.current_state_.u = forward_dynamics_res[11];
+    // robot_structs_.hw_vehicle_struct_.current_state_.v = forward_dynamics_res[12];
+    // robot_structs_.hw_vehicle_struct_.current_state_.w = forward_dynamics_res[13];
+    // robot_structs_.hw_vehicle_struct_.current_state_.p = forward_dynamics_res[14];
+    // robot_structs_.hw_vehicle_struct_.current_state_.q = forward_dynamics_res[15];
+    // robot_structs_.hw_vehicle_struct_.current_state_.r = forward_dynamics_res[16];
     return controller_interface::return_type::OK;
   }
 
