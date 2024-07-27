@@ -42,6 +42,7 @@ namespace uvms_controller
       return controller_interface::CallbackReturn::ERROR;
     };
     params_ = param_listener_->get_params();
+    RCLCPP_INFO(get_node()->get_logger(), "INIT WORKED********************************************");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 

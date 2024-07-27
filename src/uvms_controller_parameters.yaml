@@ -1,11 +1,42 @@
 uvms_controller:
-  state_interface: 
-      position_interface: 
-        type: string
-        description: The name of the interface.
-      velocity_interface: 
-        type: string
-        description: The name of the interface.
-      joint:
-        type: string
-        description: The name of the joint.
+  joints:
+    type: string_array
+    description: "specifies which joints will be used by the controller"
+    read_only: true
+    validation:
+      fixed_size<>: [6]
+      unique<>: []
+
+  __map_joints:
+    publish_pose_interface:
+      type: string_array
+      description: "publish_ position map parameter without struct name"
+      read_only: true
+      validation:
+        unique<>: []
+        size_lt<>: [8]
+    publish_velocity_interface:
+      type: string_array
+      description: "publish_ velocity map parameter without struct name"
+      read_only: true
+      validation:
+        unique<>: []
+        size_lt<>: [7]
+    subscribe_pose_interface:
+      type: string_array
+      description: "subscribe_ position map parameter without struct name"
+      read_only: true
+      validation:
+        unique<>: []
+        size_lt<>: [8]
+    subscribe_velocity_interface:
+      type: string_array
+      description: "subscribe_ velocity map parameter without struct name"
+      read_only: true
+      validation:
+        unique<>: []
+        size_lt<>: [7]
+    effort_interface:
+      type: string
+      description: "effort map parameter without struct name"
+      read_only: true
