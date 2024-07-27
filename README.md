@@ -22,7 +22,7 @@ git clone https://github.com/edxmorgan/uvms_ros2_controller
 <exec_depend>uvms_controller</exec_depend>
 ```
 
-### Add to your robot controllers yaml config file in ros2_control
+### Edit accordingly and add to your robot controllers yaml config file in ros2_control
 
 ```yaml
 controller_manager:
