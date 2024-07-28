@@ -64,10 +64,14 @@ namespace uvms_controller
     std::sort(joints_.begin(), joints_.end(), [&](const std::string &a, const std::string &b)
               { return dynamics_order.at(params_.joints_map.at(a).dynamics_identifier) <
                        dynamics_order.at(params_.joints_map.at(b).dynamics_identifier); });
+    int state_index = 0;
+    int command_index = 0;
 
     for (const auto &joint_ : joints_)
     {
       RCLCPP_INFO(get_node()->get_logger(), "Joint --> %s", joint_.c_str());
+      //
+      // command interfaces
       // ##############################################################################################################################
       if (params_.joints_map.at(joint_).dynamics_identifier.empty())
       {
@@ -91,7 +95,7 @@ namespace uvms_controller
       for (const auto &pose_publish_interface_ : uvms_publish_pose_interface_)
       {
         state_interface_types_.push_back(std::string(joint_) + "/" + std::string(pose_publish_interface_));
-        RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_pose_interface Registered --> %s", pose_publish_interface_.c_str());
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_pose_interface Registered [%d] --> %s", state_index++, pose_publish_interface_.c_str());
       }
       // ##############################################################################################################################
 
@@ -105,7 +109,7 @@ namespace uvms_controller
       for (const auto &vel_interface_ : uvms_publish_velocity_interface_)
       {
         state_interface_types_.push_back(std::string(joint_) + "/" + std::string(vel_interface_));
-        RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_velocity_interface Registered --> %s", vel_interface_.c_str());
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_velocity_interface Registered [%d] --> %s", state_index++, vel_interface_.c_str());
       }
 
       // for clean states (kf maybe) fix required
@@ -139,7 +143,6 @@ namespace uvms_controller
       // }
       // ##############################################################################################################################
 
-
       // command interfaces
       if (params_.joints_map.at(joint_).effort_command_interface.empty())
       {
@@ -151,7 +154,7 @@ namespace uvms_controller
       for (const auto &effort_command_interface_ : uvms_effort_command_interface_)
       {
         command_interface_types_.push_back(std::string(effort_command_interface_));
-        RCLCPP_INFO(get_node()->get_logger(), "uvms_effort_command_interface_ Registered --> %s", effort_command_interface_.c_str());
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_effort_command_interface_ Registered [%d] --> %s", command_index++, effort_command_interface_.c_str());
       }
 
       // ##############################################################################################################################
