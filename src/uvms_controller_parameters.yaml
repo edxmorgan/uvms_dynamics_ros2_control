@@ -1,4 +1,20 @@
 uvms_controller:
+  base_TF_translation:
+    type: double_array
+    description: "specifies transformation from vehicle base to manipulator base"
+    read_only: true
+    validation:
+      not_empty<>: []
+      fixed_size<>: [3]
+
+  base_TF_rotation:
+    type: double_array
+    description: "specifies transformation from vehicle base to manipulator base"
+    read_only: true
+    validation:
+      not_empty<>: []
+      fixed_size<>: [3]
+      
   joints:
     type: string_array
     description: "specifies which joints will be used by the controller."

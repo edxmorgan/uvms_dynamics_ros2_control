@@ -34,7 +34,7 @@ namespace uvms_controller
 {
 
   using CmdType = std_msgs::msg::Float64MultiArray;
-  
+
   class UvmsControllerBase : public controller_interface::ControllerInterface
   {
   public:
@@ -92,6 +92,8 @@ namespace uvms_controller
     casadi_uvms::FunctionLoader fun_service;
 
     std::vector<std::string> joints_;
+    std::vector<double> uvms_base_TF_;  // Create a new vector to hold the combined tfs
+
     std::string uvms_dynamics_identifier_;
     std::vector<std::string> uvms_publish_pose_interface_;
     std::vector<std::string> uvms_publish_velocity_interface_;
@@ -104,6 +106,16 @@ namespace uvms_controller
 
     realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
     rclcpp::Subscription<CmdType>::SharedPtr joints_command_subscriber_;
+
+    double delta_seconds_; // simulation period dt
+    std::vector<double> uvms_x0_;           // current uvms state
+    std::vector<double> uvms_u0_;           // uvms effort input
+    std::vector<double> uvms_vc_;           // uvms current flow velocity . NB. irrotational assumed
+    std::vector<double> uvms_params_;       // uvms manipulator parameters *{rotor_intial, viscous coefficient}
+    std::vector<double> uvms_base_T_;       // vehicle base_origin to manipulator base_origin (x,y,z, r, p, y)
+    std::vector<DM> uvsm_arg_;              // argument set for dynamics calculation
+    std::vector<DM> uvms_dynamic_response_; // dynamic response
+    std::vector<double> forward_dynamics_res_;   // stores the dynamic response from the forward dynamics simulator as double vector object
   };
 
 } // namespace uvms_controller

@@ -28,6 +28,17 @@
 
 namespace uvms_controller
 {
+  // Function to convert std::vector<double> to string
+  std::string vectorToString(const std::vector<double> &vec)
+  {
+    std::ostringstream oss;
+    for (const auto &val : vec)
+    {
+      oss << val << " ";
+    }
+    return oss.str();
+  }
+
   UvmsController::UvmsController() : UvmsControllerBase() {}
 
   void UvmsController::declare_parameters()
@@ -43,6 +54,34 @@ namespace uvms_controller
       return controller_interface::CallbackReturn::ERROR;
     };
     params_ = param_listener_->get_params();
+
+    if (params_.base_TF_translation.empty())
+    {
+      RCLCPP_ERROR(get_node()->get_logger(), "'base_TF_translation' parameter was empty");
+      return controller_interface::CallbackReturn::ERROR;
+    };
+
+    std::vector<double> base_tf_translation_ = params_.base_TF_translation;
+    std::string base_tf_translation_str = vectorToString(base_tf_translation_);
+    RCLCPP_INFO(get_node()->get_logger(), "base_tf_translation_ --> [%s]", base_tf_translation_str.c_str());
+
+    if (params_.base_TF_rotation.empty())
+    {
+      RCLCPP_ERROR(get_node()->get_logger(), "'base_TF_rotation' parameter was empty");
+      return controller_interface::CallbackReturn::ERROR;
+    };
+    std::vector<double> base_tf_rotation_ = params_.base_TF_rotation;
+    std::string base_tf_rotation_str = vectorToString(base_tf_rotation_);
+    RCLCPP_INFO(get_node()->get_logger(), "base_tf_rotation_ --> [%s]", base_tf_rotation_str.c_str());
+
+    // Reserve enough space to avoid multiple reallocations
+    uvms_base_TF_.reserve(6);
+    // Insert elements from base_tf_translation_ and base_tf_rotation_ into uvms_base_TF_
+    uvms_base_TF_.insert(uvms_base_TF_.end(), base_tf_translation_.begin(), base_tf_translation_.end());
+    uvms_base_TF_.insert(uvms_base_TF_.end(), base_tf_rotation_.begin(), base_tf_rotation_.end());
+
+    std::string base_TF_str = vectorToString(uvms_base_TF_);
+    RCLCPP_INFO(get_node()->get_logger(), "base_TF_ --> [%s]", base_TF_str.c_str());
 
     if (params_.joints.empty())
     {

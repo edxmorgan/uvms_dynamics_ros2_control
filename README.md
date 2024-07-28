@@ -32,9 +32,10 @@ controller_manager:
     uvms_controller:
       type: uvms_controller/UvmsController
 
-
 uvms_controller:
   ros__parameters:
+    base_TF_translation: [0.140, 0.000, -0.120]
+    base_TF_rotation: [3.142, 0.000, 0.000]
     joints:
       - alphaimu_sensor
       - alpha_axis_e

@@ -28,7 +28,7 @@ namespace casadi_uvms
 
     public:
         Function tester; // uvms casadi tester
-        Function dynamics; // uvms dynamics
+        Function uvms_dynamics; // uvms dynamics
 
         FunctionLoader() = default;
 
