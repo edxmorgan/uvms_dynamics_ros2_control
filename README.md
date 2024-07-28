@@ -36,12 +36,14 @@ controller_manager:
 uvms_controller:
   ros__parameters:
     joints:
-      - alphaimu_sensor
-      - alpha_axis_e
-      - alpha_axis_d
-      - alpha_axis_c
-      - alpha_axis_b
-      - alpha_axis_a
+      - alphaimu_sensor #moving_base
+      - alpha_axis_e #joint0
+      - alpha_axis_d #joint1
+      - alpha_axis_c #joint2
+      - alpha_axis_b #joint3
+      - alpha_axis_a #endeffector
+      
+      # Order joint list with moving_base at top to endeffector at the bottom
 
     alphaimu_sensor:
       dynamics_identifier: "moving_base"

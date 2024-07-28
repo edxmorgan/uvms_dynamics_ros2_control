@@ -75,6 +75,7 @@ namespace uvms_controller
       for (const auto &pose_publish_interface_ : uvms_publish_pose_interface_)
       {
         RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_pose_interface Registered --> %s", pose_publish_interface_.c_str());
+        // state_interface_types_.push_back(params_.sensor + "/" + params_.position_x_state_interface);
       }
 // ##############################################################################################################################
 
