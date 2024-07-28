@@ -53,11 +53,11 @@ uvms_controller:
         unique<>: []
         size_lt<>: [7]
 
-    effort_topic_interface:
+    effort_command_interface:
       type: string_array
       description: "effort map parameter without struct name"
       read_only: true
       validation:
         not_empty<>: []
         unique<>: []
-        size_lt<>: [7]
+        size_lt<>: [9]

@@ -31,7 +31,9 @@ namespace uvms_controller
 {
 
   UvmsControllerBase::UvmsControllerBase()
-      : controller_interface::ControllerInterface()
+      : controller_interface::ControllerInterface(),
+        rt_command_ptr_(nullptr),
+        joints_command_subscriber_(nullptr)
   {
   }
 
@@ -65,6 +67,12 @@ namespace uvms_controller
     {
       return ret;
     }
+
+    joints_command_subscriber_ = get_node()->create_subscription<CmdType>(
+        "~/commands", rclcpp::SystemDefaultsQoS(),
+        [this](const CmdType::SharedPtr msg)
+        { rt_command_ptr_.writeFromNonRT(msg); });
+
     RCLCPP_INFO(get_node()->get_logger(), "configure successful");
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -94,7 +102,7 @@ namespace uvms_controller
     RCLCPP_INFO(get_node()->get_logger(), "about to activate *******************88");
     std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
         ordered_interfaces;
-        
+
     if (
         !controller_interface::get_ordered_interfaces(
             state_interfaces_, state_interface_types_, std::string(""), ordered_interfaces) ||
@@ -113,12 +121,35 @@ namespace uvms_controller
   controller_interface::CallbackReturn UvmsControllerBase::on_deactivate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
+    // reset command buffer
+    rt_command_ptr_ = realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>>(nullptr);
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::return_type UvmsControllerBase::update(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
+    auto joint_commands = rt_command_ptr_.readFromRT();
+
+    // no command received yet
+    if (!joint_commands || !(*joint_commands))
+    {
+      return controller_interface::return_type::OK;
+    }
+    if ((*joint_commands)->data.size() != command_interfaces_.size())
+    {
+      RCLCPP_ERROR_THROTTLE(
+          get_node()->get_logger(), *(get_node()->get_clock()), 1000,
+          "command size (%zu) does not match number of interfaces (%zu)",
+          (*joint_commands)->data.size(), command_interfaces_.size());
+      return controller_interface::return_type::ERROR;
+    }
+
+    // for (auto index = 0ul; index < command_interfaces_.size(); ++index)
+    // {
+    //   command_interfaces_[index].set_value((*joint_commands)->data[index]);
+    // }
+
     // std::vector<double> uvms_x0 = {
     //     robot_structs_.hw_vehicle_struct_.current_state_.position_x,
     //     robot_structs_.hw_vehicle_struct_.current_state_.position_y,

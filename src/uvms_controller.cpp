@@ -67,7 +67,7 @@ namespace uvms_controller
 
     for (const auto &joint_ : joints_)
     {
-      RCLCPP_INFO(get_node()->get_logger(), "Joints Registered --> %s", joint_.c_str());
+      RCLCPP_INFO(get_node()->get_logger(), "Joint --> %s", joint_.c_str());
       // ##############################################################################################################################
       if (params_.joints_map.at(joint_).dynamics_identifier.empty())
       {
@@ -107,47 +107,52 @@ namespace uvms_controller
         state_interface_types_.push_back(std::string(joint_) + "/" + std::string(vel_interface_));
         RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_velocity_interface Registered --> %s", vel_interface_.c_str());
       }
+
+      // for clean states (kf maybe) fix required
       // ##############################################################################################################################
 
-      if (params_.joints_map.at(joint_).subscribe_pose_interface.empty())
-      {
-        RCLCPP_ERROR(get_node()->get_logger(), "'pose_subscribe_interface' for joint %s parameter was empty", joint_.c_str());
-        return controller_interface::CallbackReturn::ERROR;
-      };
-
-      uvms_subscribe_pose_interface_ = params_.joints_map.at(joint_).subscribe_pose_interface;
-      for (const auto &pose_subscribe_interface : uvms_subscribe_pose_interface_)
-      {
-        state_interface_types_.push_back(std::string(joint_) + "/" + std::string(pose_subscribe_interface));
-        RCLCPP_INFO(get_node()->get_logger(), "uvms_subscribe_pose_interface_ Registered --> %s", pose_subscribe_interface.c_str());
-      }
-      // ##############################################################################################################################
-
-      if (params_.joints_map.at(joint_).subscribe_velocity_interface.empty())
-      {
-        RCLCPP_ERROR(get_node()->get_logger(), "'subscribe_velocity_interface_' for joint %s parameter was empty", joint_.c_str());
-        return controller_interface::CallbackReturn::ERROR;
-      };
-
-      uvms_subscribe_velocity_interface_ = params_.joints_map.at(joint_).subscribe_velocity_interface;
-      for (const auto &velocity_subscribe_interface_ : uvms_subscribe_velocity_interface_)
-      {
-        state_interface_types_.push_back(std::string(joint_) + "/" + std::string(velocity_subscribe_interface_));
-        RCLCPP_INFO(get_node()->get_logger(), "uvms_subscribe_velocity_interface_ Registered --> %s", velocity_subscribe_interface_.c_str());
-      }
-      // ##############################################################################################################################
-      // if (params_.joints_map.at(joint_).effort_topic_interface.empty())
+      // if (params_.joints_map.at(joint_).subscribe_pose_interface.empty())
       // {
-      //   RCLCPP_ERROR(get_node()->get_logger(), "'effort_topic_interface' for joint %s parameter was empty", joint_.c_str());
+      //   RCLCPP_ERROR(get_node()->get_logger(), "'pose_subscribe_interface' for joint %s parameter was empty", joint_.c_str());
       //   return controller_interface::CallbackReturn::ERROR;
       // };
 
-      // uvms_effort_topic_interface_ = params_.joints_map.at(joint_).effort_topic_interface;
-      // for (const auto &effort_topic_interface_ : uvms_effort_topic_interface_)
+      // uvms_subscribe_pose_interface_ = params_.joints_map.at(joint_).subscribe_pose_interface;
+      // for (const auto &pose_subscribe_interface : uvms_subscribe_pose_interface_)
       // {
-      //   state_interface_types_.push_back(std::string(joint_) + "/" + std::string(effort_topic_interface_));
-      //   RCLCPP_INFO(get_node()->get_logger(), "uvms_effort_topic_interface_ Registered --> %s", effort_topic_interface_.c_str());
+      //   state_interface_types_.push_back(std::string(joint_) + "/" + std::string(pose_subscribe_interface));
+      //   RCLCPP_INFO(get_node()->get_logger(), "uvms_subscribe_pose_interface_ Registered --> %s", pose_subscribe_interface.c_str());
       // }
+      // ##############################################################################################################################
+
+      // if (params_.joints_map.at(joint_).subscribe_velocity_interface.empty())
+      // {
+      //   RCLCPP_ERROR(get_node()->get_logger(), "'subscribe_velocity_interface_' for joint %s parameter was empty", joint_.c_str());
+      //   return controller_interface::CallbackReturn::ERROR;
+      // };
+
+      // uvms_subscribe_velocity_interface_ = params_.joints_map.at(joint_).subscribe_velocity_interface;
+      // for (const auto &velocity_subscribe_interface_ : uvms_subscribe_velocity_interface_)
+      // {
+      //   state_interface_types_.push_back(std::string(joint_) + "/" + std::string(velocity_subscribe_interface_));
+      //   RCLCPP_INFO(get_node()->get_logger(), "uvms_subscribe_velocity_interface_ Registered********************** --> %s", velocity_subscribe_interface_.c_str());
+      // }
+      // ##############################################################################################################################
+
+
+      // command interfaces
+      if (params_.joints_map.at(joint_).effort_command_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'effort_command_interface' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_effort_command_interface_ = params_.joints_map.at(joint_).effort_command_interface;
+      for (const auto &effort_command_interface_ : uvms_effort_command_interface_)
+      {
+        command_interface_types_.push_back(std::string(effort_command_interface_));
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_effort_command_interface_ Registered --> %s", effort_command_interface_.c_str());
+      }
 
       // ##############################################################################################################################
     }

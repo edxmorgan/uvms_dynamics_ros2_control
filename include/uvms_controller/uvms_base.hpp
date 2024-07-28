@@ -32,6 +32,9 @@
 
 namespace uvms_controller
 {
+
+  using CmdType = std_msgs::msg::Float64MultiArray;
+  
   class UvmsControllerBase : public controller_interface::ControllerInterface
   {
   public:
@@ -84,7 +87,7 @@ namespace uvms_controller
      * their values are allowed, controller_interface::CallbackReturn::ERROR otherwise.
      */
     virtual controller_interface::CallbackReturn read_parameters() = 0;
-    
+
     // Store the dynamics function for the whole body robot
     casadi_uvms::FunctionLoader fun_service;
 
@@ -94,11 +97,13 @@ namespace uvms_controller
     std::vector<std::string> uvms_publish_velocity_interface_;
     std::vector<std::string> uvms_subscribe_pose_interface_;
     std::vector<std::string> uvms_subscribe_velocity_interface_;
-    std::vector<std::string> uvms_effort_topic_interface_;
-
+    std::vector<std::string> uvms_effort_command_interface_;
 
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;
+
+    realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
+    rclcpp::Subscription<CmdType>::SharedPtr joints_command_subscriber_;
   };
 
 } // namespace uvms_controller
