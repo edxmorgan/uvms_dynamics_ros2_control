@@ -1,4 +1,4 @@
-// Copyright 2021 Stogl Robotics Consulting UG (haftungsbescrhänkt)
+// Copyright 2024 Edward Morgan
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ namespace uvms_controller
     std::vector<std::string> uvms_publish_velocity_interface_;
     std::vector<std::string> uvms_subscribe_pose_interface_;
     std::vector<std::string> uvms_subscribe_velocity_interface_;
-    std::string uvms_effort_interface_;
+    std::vector<std::string> uvms_effort_topic_interface_;
 
 
     std::vector<std::string> command_interface_types_;

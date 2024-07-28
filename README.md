@@ -32,26 +32,23 @@ controller_manager:
     uvms_controller:
       type: uvms_controller/UvmsController
 
-
 uvms_controller:
   ros__parameters:
     joints:
-      - alphaimu_sensor #moving_base
-      - alpha_axis_e #joint0
-      - alpha_axis_d #joint1
-      - alpha_axis_c #joint2
-      - alpha_axis_b #joint3
-      - alpha_axis_a #endeffector
-      
-      # Order joint list with moving_base at top to endeffector at the bottom
+      - alphaimu_sensor
+      - alpha_axis_e
+      - alpha_axis_d
+      - alpha_axis_c
+      - alpha_axis_b 
+      - alpha_axis_a
 
     alphaimu_sensor:
-      dynamics_identifier: "moving_base"
+      dynamics_identifier: "floating_base"
       publish_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
       publish_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
       subscribe_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
       subscribe_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
-      effort_interface: effort
+      effort_topic_interface: [effort.u, effort.v, effort.w, effort.p, effort.q, effort.r]
 
     alpha_axis_e:
       dynamics_identifier: "joint0"
@@ -59,7 +56,7 @@ uvms_controller:
       publish_velocity_interface: ["velocity"]
       subscribe_pose_interface: ["filtered_position"]
       subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: effort
+      effort_topic_interface: [effort]
 
     alpha_axis_d:
       dynamics_identifier: "joint1"
@@ -67,7 +64,7 @@ uvms_controller:
       publish_velocity_interface: ["velocity"]
       subscribe_pose_interface: ["filtered_position"]
       subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: effort
+      effort_topic_interface: [effort]
 
     alpha_axis_c:
       dynamics_identifier: "joint2"
@@ -75,7 +72,7 @@ uvms_controller:
       publish_velocity_interface: ["velocity"]
       subscribe_pose_interface: ["filtered_position"]
       subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: effort
+      effort_topic_interface: [effort]
 
     alpha_axis_b:
       dynamics_identifier: "joint3"
@@ -83,7 +80,7 @@ uvms_controller:
       publish_velocity_interface: ["velocity"]
       subscribe_pose_interface: ["filtered_position"]
       subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: effort
+      effort_topic_interface: [effort]
       
     alpha_axis_a:
       dynamics_identifier: "endeffector"
@@ -91,7 +88,7 @@ uvms_controller:
       publish_velocity_interface: ["velocity"]
       subscribe_pose_interface: ["filtered_position"]
       subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: effort
+      effort_topic_interface: [effort]
 ```
 
 ### Build Workspace

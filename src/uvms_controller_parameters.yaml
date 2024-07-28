@@ -1,8 +1,7 @@
 uvms_controller:
   joints:
     type: string_array
-    description: "specifies which joints will be used by the controller. 
-    Order joint list to correspond to [moving_base, joint0, joint1, joint2, joint3, endeffector]"
+    description: "specifies which joints will be used by the controller."
     read_only: true
     validation:
       not_empty<>: []
@@ -16,7 +15,7 @@ uvms_controller:
       read_only: true
       validation:
         not_empty<>: null
-        one_of<>: [[moving_base, joint0, joint1, joint2, joint3, endeffector]]
+        one_of<>: [[floating_base, joint0, joint1, joint2, joint3, endeffector]]
 
     publish_pose_interface:
       type: string_array
@@ -54,9 +53,11 @@ uvms_controller:
         unique<>: []
         size_lt<>: [7]
 
-    effort_interface:
-      type: string
+    effort_topic_interface:
+      type: string_array
       description: "effort map parameter without struct name"
       read_only: true
       validation:
-        not_empty<>: null
+        not_empty<>: []
+        unique<>: []
+        size_lt<>: [7]
