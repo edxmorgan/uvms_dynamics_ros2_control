@@ -4,8 +4,8 @@ Ros2_control plugin providing virtual underwater vehicle and manipulator capabil
 
 ## Library Details
 
-- **Pluginlib-Library**: uvms
-- **Plugin Type**: uvms/Dynamics (implements `controller_interface::ControllerInterface`)
+- **Pluginlib-Library**: uvms_controller
+- **Plugin Type**: uvms_controller/UvmsController (implements `controller_interface::ControllerInterface`)
 
 ## Usage
 
