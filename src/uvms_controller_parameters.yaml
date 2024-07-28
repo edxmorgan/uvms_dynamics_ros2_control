@@ -4,39 +4,57 @@ uvms_controller:
     description: "specifies which joints will be used by the controller"
     read_only: true
     validation:
+      not_empty<>: []
       fixed_size<>: [6]
       unique<>: []
 
   __map_joints:
+    dynamics_identifier:
+      type: string
+      description: "maps to the joints used in the dynamics calculation"
+      read_only: true
+      validation:
+        not_empty<>: null
+
     publish_pose_interface:
       type: string_array
       description: "publish_ position map parameter without struct name"
       read_only: true
       validation:
+        not_empty<>: []
         unique<>: []
         size_lt<>: [8]
+
     publish_velocity_interface:
       type: string_array
       description: "publish_ velocity map parameter without struct name"
       read_only: true
       validation:
+        not_empty<>: []
         unique<>: []
         size_lt<>: [7]
+
     subscribe_pose_interface:
       type: string_array
       description: "subscribe_ position map parameter without struct name"
       read_only: true
       validation:
+        not_empty<>: []
         unique<>: []
         size_lt<>: [8]
+
     subscribe_velocity_interface:
       type: string_array
       description: "subscribe_ velocity map parameter without struct name"
       read_only: true
       validation:
+        not_empty<>: []
         unique<>: []
         size_lt<>: [7]
+
     effort_interface:
       type: string
       description: "effort map parameter without struct name"
       read_only: true
+      validation:
+        not_empty<>: null

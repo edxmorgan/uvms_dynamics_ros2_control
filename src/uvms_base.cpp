@@ -45,7 +45,7 @@ namespace uvms_controller
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::CasADi version: %s", casadi_version.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::Testing casadi ready for operations");
       // Use CasADi's "external" to load the compiled dynamics functions
-      fun_service.usage_cplusplus_checks("test", "libtest.so","UVMS Controller");
+      fun_service.usage_cplusplus_checks("test", "libtest.so", "UVMS Controller");
       fun_service.dynamics = fun_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
     }
     catch (const std::exception &e)
@@ -53,13 +53,19 @@ namespace uvms_controller
       fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
-
+    RCLCPP_INFO(get_node()->get_logger(), "on_init successful");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
   controller_interface::CallbackReturn UvmsControllerBase::on_configure(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
+    auto ret = this->read_parameters();
+    if (ret != controller_interface::CallbackReturn::SUCCESS)
+    {
+      return ret;
+    }
+    RCLCPP_INFO(get_node()->get_logger(), "configure successful");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -75,7 +81,7 @@ namespace uvms_controller
   controller_interface::InterfaceConfiguration UvmsControllerBase::state_interface_configuration()
       const
   {
-   controller_interface::InterfaceConfiguration state_interfaces_config;
+    controller_interface::InterfaceConfiguration state_interfaces_config;
     state_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
     state_interfaces_config.names = state_interface_types_;
 
@@ -97,7 +103,7 @@ namespace uvms_controller
   controller_interface::return_type UvmsControllerBase::update(
       const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
   {
-   // std::vector<double> uvms_x0 = {
+    // std::vector<double> uvms_x0 = {
     //     robot_structs_.hw_vehicle_struct_.current_state_.position_x,
     //     robot_structs_.hw_vehicle_struct_.current_state_.position_y,
     //     robot_structs_.hw_vehicle_struct_.current_state_.position_z,

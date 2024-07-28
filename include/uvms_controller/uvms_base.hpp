@@ -87,7 +87,16 @@ namespace uvms_controller
     
     // Store the dynamics function for the whole body robot
     casadi_uvms::FunctionLoader fun_service;
-    
+
+    std::vector<std::string> joints_;
+    std::string uvms_dynamics_identifier_;
+    std::vector<std::string> uvms_publish_pose_interface_;
+    std::vector<std::string> uvms_publish_velocity_interface_;
+    std::vector<std::string> uvms_subscribe_pose_interface_;
+    std::vector<std::string> uvms_subscribe_velocity_interface_;
+    std::string uvms_effort_interface_;
+
+
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;
   };

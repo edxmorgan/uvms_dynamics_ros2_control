@@ -42,7 +42,94 @@ namespace uvms_controller
       return controller_interface::CallbackReturn::ERROR;
     };
     params_ = param_listener_->get_params();
-    RCLCPP_INFO(get_node()->get_logger(), "INIT WORKED********************************************");
+
+    if (params_.joints.empty())
+    {
+      RCLCPP_ERROR(get_node()->get_logger(), "'joints' parameter was empty");
+      return controller_interface::CallbackReturn::ERROR;
+    };
+    joints_ = params_.joints;
+    for (const auto &joint_ : joints_)
+    {
+      RCLCPP_INFO(get_node()->get_logger(), "Joints Registered --> %s", joint_.c_str());
+// ##############################################################################################################################
+      if (params_.joints_map.at(joint_).dynamics_identifier.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'Dynamic Identifier' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_dynamics_identifier_ = params_.joints_map.at(joint_).dynamics_identifier;
+ 
+      RCLCPP_INFO(get_node()->get_logger(), "uvms_dynamics_identifier_ Registered --> %s", uvms_dynamics_identifier_.c_str());
+
+// ##############################################################################################################################
+      
+      if (params_.joints_map.at(joint_).publish_pose_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'pose_publish_interface_' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_publish_pose_interface_ = params_.joints_map.at(joint_).publish_pose_interface;
+      for (const auto &pose_publish_interface_ : uvms_publish_pose_interface_)
+      {
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_pose_interface Registered --> %s", pose_publish_interface_.c_str());
+      }
+// ##############################################################################################################################
+
+      if (params_.joints_map.at(joint_).publish_velocity_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'Pose Interface' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_publish_velocity_interface_ = params_.joints_map.at(joint_).publish_velocity_interface;
+      for (const auto &vel_interface_ : uvms_publish_velocity_interface_)
+      {
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_publish_velocity_interface Registered --> %s", vel_interface_.c_str());
+      }
+// ##############################################################################################################################
+
+      if (params_.joints_map.at(joint_).subscribe_pose_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'pose_subscribe_interface' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_subscribe_pose_interface_ = params_.joints_map.at(joint_).subscribe_pose_interface;
+      for (const auto &pose_subscribe_interface : uvms_subscribe_pose_interface_)
+      {
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_subscribe_pose_interface_ Registered --> %s", pose_subscribe_interface.c_str());
+      }
+// ##############################################################################################################################
+
+      if (params_.joints_map.at(joint_).subscribe_velocity_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'subscribe_velocity_interface_' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_subscribe_velocity_interface_ = params_.joints_map.at(joint_).subscribe_velocity_interface;
+      for (const auto &velocity_subscribe_interface_ : uvms_subscribe_velocity_interface_)
+      {
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_subscribe_velocity_interface_ Registered --> %s", velocity_subscribe_interface_.c_str());
+      }
+// ##############################################################################################################################
+      if (params_.joints_map.at(joint_).effort_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'effort_interface' for joint %s parameter was empty", joint_.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      uvms_effort_interface_ = params_.joints_map.at(joint_).effort_interface;
+
+      RCLCPP_INFO(get_node()->get_logger(), "uvms_effort_interface_ Registered --> %s", uvms_effort_interface_.c_str());
+
+// ##############################################################################################################################
+    }
+
+    RCLCPP_INFO(get_node()->get_logger(), "read_parameters successful******");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 

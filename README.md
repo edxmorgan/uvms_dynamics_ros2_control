@@ -37,53 +37,59 @@ uvms_controller:
   ros__parameters:
     joints:
       - alphaimu_sensor
-      - alpha_axis_a
-      - alpha_axis_b
-      - alpha_axis_c
-      - alpha_axis_d
       - alpha_axis_e
+      - alpha_axis_d
+      - alpha_axis_c
+      - alpha_axis_b
+      - alpha_axis_a
 
     alphaimu_sensor:
+      dynamics_identifier: "moving_base"
       publish_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
       publish_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
       subscribe_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
       subscribe_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
       effort_interface: effort
-       
-    alpha_axis_a:
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: "effort"
-
-    alpha_axis_b:
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: "effort"
-
-    alpha_axis_c:
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: "effort"
-
-    alpha_axis_d:
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: "effort"
 
     alpha_axis_e:
+      dynamics_identifier: "joint0"
       publish_pose_interface: ["position"]
       publish_velocity_interface: ["velocity"]
       subscribe_pose_interface: ["filtered_position"]
       subscribe_velocity_interface: ["filtered_velocity"]
-      effort_interface: "effort"
+      effort_interface: effort
+
+    alpha_axis_d:
+      dynamics_identifier: "joint1"
+      publish_pose_interface: ["position"]
+      publish_velocity_interface: ["velocity"]
+      subscribe_pose_interface: ["filtered_position"]
+      subscribe_velocity_interface: ["filtered_velocity"]
+      effort_interface: effort
+
+    alpha_axis_c:
+      dynamics_identifier: "joint2"
+      publish_pose_interface: ["position"]
+      publish_velocity_interface: ["velocity"]
+      subscribe_pose_interface: ["filtered_position"]
+      subscribe_velocity_interface: ["filtered_velocity"]
+      effort_interface: effort
+
+    alpha_axis_b:
+      dynamics_identifier: "joint3"
+      publish_pose_interface: ["position"]
+      publish_velocity_interface: ["velocity"]
+      subscribe_pose_interface: ["filtered_position"]
+      subscribe_velocity_interface: ["filtered_velocity"]
+      effort_interface: effort
+      
+    alpha_axis_a:
+      dynamics_identifier: "endeffector"
+      publish_pose_interface: ["position"]
+      publish_velocity_interface: ["velocity"]
+      subscribe_pose_interface: ["filtered_position"]
+      subscribe_velocity_interface: ["filtered_velocity"]
+      effort_interface: effort
 ```
 
 ### Build Workspace
