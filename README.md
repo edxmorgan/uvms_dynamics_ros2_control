@@ -48,7 +48,7 @@ uvms_controller:
       publish_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
       subscribe_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
       subscribe_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
-      effort_topic_interface: [effort.u, effort.v, effort.w, effort.p, effort.q, effort.r]
+      effort_topic_interface: [effort.Fu, effort.Fv, effort.Fw, effort.Fp, effort.Fq, effort.Fr]
 
     alpha_axis_e:
       dynamics_identifier: "joint0"

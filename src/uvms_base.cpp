@@ -94,6 +94,7 @@ namespace uvms_controller
     RCLCPP_INFO(get_node()->get_logger(), "about to activate *******************88");
     std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
         ordered_interfaces;
+        
     if (
         !controller_interface::get_ordered_interfaces(
             state_interfaces_, state_interface_types_, std::string(""), ordered_interfaces) ||

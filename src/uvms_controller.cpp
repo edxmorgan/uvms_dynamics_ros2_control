@@ -77,7 +77,7 @@ namespace uvms_controller
 
       uvms_dynamics_identifier_ = params_.joints_map.at(joint_).dynamics_identifier;
 
-      RCLCPP_INFO(get_node()->get_logger(), "uvms_dynamics_identifier_ Registered --> %s", uvms_dynamics_identifier_.c_str());
+      RCLCPP_INFO(get_node()->get_logger(), "uvms_dynamics_identifier_ --> %s", uvms_dynamics_identifier_.c_str());
 
       // ##############################################################################################################################
 
