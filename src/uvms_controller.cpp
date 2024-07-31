@@ -199,8 +199,6 @@ namespace uvms_controller
 
       // ##############################################################################################################################
     }
-
-    RCLCPP_INFO(get_node()->get_logger(), "read_parameters successful******");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
