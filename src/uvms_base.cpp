@@ -113,7 +113,6 @@ namespace uvms_controller
       return controller_interface::CallbackReturn::ERROR;
     }
 
-    RCLCPP_INFO(get_node()->get_logger(), "activate successful");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
