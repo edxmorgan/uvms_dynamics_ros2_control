@@ -14,7 +14,16 @@ uvms_controller:
     validation:
       not_empty<>: []
       fixed_size<>: [3]
-      
+
+  thrusters:
+    type: string_array
+    description: "specifies which thrusters will be used by the controller."
+    read_only: true
+    validation:
+      not_empty<>: []
+      fixed_size<>: [8]
+      unique<>: []
+
   joints:
     type: string_array
     description: "specifies which joints will be used by the controller."
@@ -33,36 +42,36 @@ uvms_controller:
         not_empty<>: null
         one_of<>: [[floating_base, joint0, joint1, joint2, joint3, endeffector]]
 
-    publish_pose_interface:
+    pose_topic_interface:
       type: string_array
-      description: "publish_ position map parameter without struct name"
+      description: "subscribe_ position map parameter with struct name"
       read_only: true
       validation:
         not_empty<>: []
         unique<>: []
         size_lt<>: [8]
 
-    publish_velocity_interface:
+    velocity_topic_interface:
       type: string_array
-      description: "publish_ velocity map parameter without struct name"
+      description: "subscribe_ velocity map parameter with struct name"
       read_only: true
       validation:
         not_empty<>: []
         unique<>: []
         size_lt<>: [7]
 
-    subscribe_pose_interface:
+    pose_command_interface:
       type: string_array
-      description: "subscribe_ position map parameter without struct name"
+      description: "publish_ position map parameter with struct name"
       read_only: true
       validation:
         not_empty<>: []
         unique<>: []
         size_lt<>: [8]
 
-    subscribe_velocity_interface:
+    velocity_command_interface:
       type: string_array
-      description: "subscribe_ velocity map parameter without struct name"
+      description: "publish_ velocity map parameter with struct name"
       read_only: true
       validation:
         not_empty<>: []
@@ -71,7 +80,7 @@ uvms_controller:
 
     effort_command_interface:
       type: string_array
-      description: "effort map parameter without struct name"
+      description: "effort map parameter with struct name"
       read_only: true
       validation:
         not_empty<>: []

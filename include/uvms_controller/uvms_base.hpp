@@ -95,10 +95,13 @@ namespace uvms_controller
     std::vector<double> uvms_base_TF_;  // Create a new vector to hold the combined tfs
 
     std::string uvms_dynamics_identifier_;
-    std::vector<std::string> uvms_publish_pose_interface_;
-    std::vector<std::string> uvms_publish_velocity_interface_;
-    std::vector<std::string> uvms_subscribe_pose_interface_;
-    std::vector<std::string> uvms_subscribe_velocity_interface_;
+    std::vector<std::string> uvms_pose_topic_interface_;
+    std::vector<std::string> uvms_velocity_topic_interface_;
+
+
+    std::vector<std::string> uvms_pose_command_interface_;
+    std::vector<std::string> uvms_velocity_command_interface_;
+
     std::vector<std::string> uvms_effort_command_interface_;
 
     std::vector<std::string> command_interface_types_;
