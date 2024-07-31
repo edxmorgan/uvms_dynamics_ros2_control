@@ -99,7 +99,6 @@ namespace uvms_controller
   controller_interface::CallbackReturn UvmsControllerBase::on_activate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
-    RCLCPP_INFO(get_node()->get_logger(), "about to activate *******************88");
     std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
         ordered_interfaces;
 
