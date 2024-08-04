@@ -189,7 +189,6 @@ namespace uvms_controller
         RCLCPP_ERROR(get_node()->get_logger(), "'effort_command_interface' for joint %s parameter was empty", joint_.c_str());
         return controller_interface::CallbackReturn::ERROR;
       };
-
       uvms_effort_command_interface_ = params_.joints_map.at(joint_).effort_command_interface;
       for (const auto &effort_command_interface_ : uvms_effort_command_interface_)
       {

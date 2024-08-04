@@ -33,7 +33,7 @@ namespace uvms_controller
   UvmsControllerBase::UvmsControllerBase()
       : controller_interface::ControllerInterface(),
         rt_command_ptr_(nullptr),
-        joints_command_subscriber_(nullptr)
+        uvms_command_subscriber_(nullptr)
   {
   }
 
@@ -55,7 +55,7 @@ namespace uvms_controller
       fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
-    RCLCPP_INFO(get_node()->get_logger(), "on_init successful");
+    // RCLCPP_INFO(get_node()->get_logger(), "on_init successful");
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -68,8 +68,8 @@ namespace uvms_controller
       return ret;
     }
 
-    joints_command_subscriber_ = get_node()->create_subscription<CmdType>(
-        "~/commands", rclcpp::SystemDefaultsQoS(),
+    uvms_command_subscriber_ = get_node()->create_subscription<CmdType>(
+        "~/uvms_commands", rclcpp::SystemDefaultsQoS(),
         [this](const CmdType::SharedPtr msg)
         { rt_command_ptr_.writeFromNonRT(msg); });
 
@@ -125,75 +125,82 @@ namespace uvms_controller
   }
 
   controller_interface::return_type UvmsControllerBase::update(
-      const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
+      const rclcpp::Time & /*time*/, const rclcpp::Duration &period)
   {
-    auto joint_commands = rt_command_ptr_.readFromRT();
+    auto uvms_commands = rt_command_ptr_.readFromRT();
 
     delta_seconds_ = period.seconds();
-    // no command received yet
-    if (!joint_commands || !(*joint_commands))
-    {
-      return controller_interface::return_type::OK;
-    }
-    if ((*joint_commands)->data.size() != command_interfaces_.size())
-    {
-      RCLCPP_ERROR_THROTTLE(
-          get_node()->get_logger(), *(get_node()->get_clock()), 1000,
-          "command size (%zu) does not match number of interfaces (%zu)",
-          (*joint_commands)->data.size(), command_interfaces_.size());
-      return controller_interface::return_type::ERROR;
-    }
 
-    // for (auto index = 0ul; index < command_interfaces_.size(); ++index)
+    // // no command received yet
+    // if (!uvms_commands || !(*uvms_commands))
     // {
-    //   command_interfaces_[index].set_value((*joint_commands)->data[index]);
+    //   auto cmd = std::make_shared<std_msgs::msg::Float64MultiArray>();
+    //   cmd->data = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    //   *uvms_commands = cmd; // Dereference the pointer before assigning
+    // }
+
+    
+    // if ((*uvms_commands)->data.size() != params_.joints_map.at(joints_[0]).effort_command_interface.size())
+    // {
+    //   RCLCPP_ERROR_THROTTLE(
+    //       get_node()->get_logger(), *(get_node()->get_clock()), 1000,
+    //       "command size (%zu) does not match number of interfaces (%zu)",
+    //       (*uvms_commands)->data.size(), params_.joints_map.at(joints_[0]).effort_command_interface.size());
+    //   return controller_interface::return_type::ERROR;
+    // };
+
+    // RCLCPP_INFO(get_node()->get_logger(), "uvms update (%d)", static_cast<int>(uvms_controller::vehicle::VehiclePositionTopic::POSITION_Z));
+
+    // // for (auto index = 0ul; index < command_interfaces_.size(); ++index)
+    // {
+    //   command_interfaces_[index].set_value((*uvms_commands)->data[index]);
     // }
 
     // Extract the values from the state interfaces
-    uvms_x0_ = {
-        state_interfaces_[0].get_value(),
-        state_interfaces_[1].get_value(),
-        state_interfaces_[2].get_value(),
-        state_interfaces_[3].get_value(),
-        state_interfaces_[4].get_value(),
-        state_interfaces_[5].get_value(),
-        state_interfaces_[6].get_value(),
-        state_interfaces_[13].get_value(),
-        state_interfaces_[15].get_value(),
-        state_interfaces_[17].get_value(),
-        state_interfaces_[19].get_value(),
-        state_interfaces_[7].get_value(),
-        state_interfaces_[8].get_value(),
-        state_interfaces_[9].get_value(),
-        state_interfaces_[10].get_value(),
-        state_interfaces_[11].get_value(),
-        state_interfaces_[12].get_value(),
-        state_interfaces_[14].get_value(),
-        state_interfaces_[16].get_value(),
-        state_interfaces_[18].get_value(),
-        state_interfaces_[20].get_value()};
+    // uvms_x0_ = {
+    //     state_interfaces_[0].get_value(),
+    //     state_interfaces_[1].get_value(),
+    //     state_interfaces_[2].get_value(),
+    //     state_interfaces_[3].get_value(),
+    //     state_interfaces_[4].get_value(),
+    //     state_interfaces_[5].get_value(),
+    //     state_interfaces_[6].get_value(),
+    //     state_interfaces_[13].get_value(),
+    //     state_interfaces_[15].get_value(),
+    //     state_interfaces_[17].get_value(),
+    //     state_interfaces_[19].get_value(),
+    //     state_interfaces_[7].get_value(),
+    //     state_interfaces_[8].get_value(),
+    //     state_interfaces_[9].get_value(),
+    //     state_interfaces_[10].get_value(),
+    //     state_interfaces_[11].get_value(),
+    //     state_interfaces_[12].get_value(),
+    //     state_interfaces_[14].get_value(),
+    //     state_interfaces_[16].get_value(),
+    //     state_interfaces_[18].get_value(),
+    //     state_interfaces_[20].get_value()};
 
-    uvms_u0_ = {
-        (*joint_commands)->data[0],
-        (*joint_commands)->data[1],
-        (*joint_commands)->data[2],
-        (*joint_commands)->data[3],
-        (*joint_commands)->data[4],
-        (*joint_commands)->data[5],
-        (*joint_commands)->data[6],
-        (*joint_commands)->data[7],
-        (*joint_commands)->data[8],
-        (*joint_commands)->data[9],
-        (*joint_commands)->data[10],
-        (*joint_commands)->data[11]};
+    // uvms_u0_ = {
+    //     (*uvms_commands)->data[0],
+    //     (*uvms_commands)->data[1],
+    //     (*uvms_commands)->data[2],
+    //     (*uvms_commands)->data[3],
+    //     (*uvms_commands)->data[4],
+    //     (*uvms_commands)->data[5],
+    //     (*uvms_commands)->data[6],
+    //     (*uvms_commands)->data[7],
+    //     (*uvms_commands)->data[8],
+    //     (*uvms_commands)->data[9],
+    //     (*uvms_commands)->data[10],
+    //     (*uvms_commands)->data[11]};
 
-    uvms_vc_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    uvms_params_ = {1e-5, 1e-5, 1e-5, 1e-6, 3, 2, 0.85, 0.065};
-    uvsm_arg_ = {DM(uvms_x0_), DM(uvms_u0_), DM(delta_seconds_), DM(uvms_vc_), DM(uvms_params_), DM(uvms_base_TF_),
-                                casadi::DM::eye(21), casadi::DM::eye(14), casadi::DM::eye(21)};
+    // uvms_vc_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    // uvms_params_ = {1e-5, 1e-5, 1e-5, 1e-6, 3, 2, 0.85, 0.065};
+    // uvsm_arg_ = {DM(uvms_x0_), DM(uvms_u0_), DM(delta_seconds_), DM(uvms_vc_), DM(uvms_params_), DM(uvms_base_TF_),
+    //                             casadi::DM::eye(21), casadi::DM::eye(14), casadi::DM::eye(21)};
 
-    uvms_dynamic_response_ = fun_service.uvms_dynamics(uvsm_arg_);
-    forward_dynamics_res_ = std::vector<double>(uvms_dynamic_response_.at(0));
+    // uvms_dynamic_response_ = fun_service.uvms_dynamics(uvsm_arg_);
+    // forward_dynamics_res_ = std::vector<double>(uvms_dynamic_response_.at(0));
 
     // state_interfaces_[0].set_value(forward_dynamics_res[0]);
     // state_interfaces_[1].set_value(forward_dynamics_res[1]);

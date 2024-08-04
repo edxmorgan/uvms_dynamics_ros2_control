@@ -29,6 +29,7 @@
 
 #include "uvms_controller/visibility_control.h"
 #include "uvms_controller/so_loader.hpp"
+#include "uvms_controller/uvms_interface.hpp"
 
 namespace uvms_controller
 {
@@ -108,7 +109,7 @@ namespace uvms_controller
     std::vector<std::string> state_interface_types_;
 
     realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
-    rclcpp::Subscription<CmdType>::SharedPtr joints_command_subscriber_;
+    rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
 
     double delta_seconds_; // simulation period dt
     std::vector<double> uvms_x0_;           // current uvms state
