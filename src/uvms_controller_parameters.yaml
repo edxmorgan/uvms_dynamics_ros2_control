@@ -15,15 +15,6 @@ uvms_controller:
       not_empty<>: []
       fixed_size<>: [3]
 
-  thrusters:
-    type: string_array
-    description: "specifies which thrusters will be used by the controller."
-    read_only: true
-    validation:
-      not_empty<>: []
-      fixed_size<>: [8]
-      unique<>: []
-
   joints:
     type: string_array
     description: "specifies which joints will be used by the controller."

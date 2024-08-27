@@ -47,8 +47,8 @@ namespace uvms_controller
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::CasADi version: %s", casadi_version.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::Testing casadi ready for operations");
       // Use CasADi's "external" to load the compiled dynamics functions
-      fun_service.usage_cplusplus_checks("test", "libtest.so", "UVMS Controller");
-      fun_service.uvms_dynamics = fun_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
+      // fun_service.usage_cplusplus_checks("test", "libtest.so", "UVMS Controller");
+      // fun_service.uvms_dynamics = fun_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
     }
     catch (const std::exception &e)
     {
@@ -131,101 +131,7 @@ namespace uvms_controller
 
     delta_seconds_ = period.seconds();
 
-    // // no command received yet
-    // if (!uvms_commands || !(*uvms_commands))
-    // {
-    //   auto cmd = std::make_shared<std_msgs::msg::Float64MultiArray>();
-    //   cmd->data = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    //   *uvms_commands = cmd; // Dereference the pointer before assigning
-    // }
-
-    
-    // if ((*uvms_commands)->data.size() != params_.joints_map.at(joints_[0]).effort_command_interface.size())
-    // {
-    //   RCLCPP_ERROR_THROTTLE(
-    //       get_node()->get_logger(), *(get_node()->get_clock()), 1000,
-    //       "command size (%zu) does not match number of interfaces (%zu)",
-    //       (*uvms_commands)->data.size(), params_.joints_map.at(joints_[0]).effort_command_interface.size());
-    //   return controller_interface::return_type::ERROR;
-    // };
-
-    // RCLCPP_INFO(get_node()->get_logger(), "uvms update (%d)", static_cast<int>(uvms_controller::vehicle::VehiclePositionTopic::POSITION_Z));
-
-    // // for (auto index = 0ul; index < command_interfaces_.size(); ++index)
-    // {
-    //   command_interfaces_[index].set_value((*uvms_commands)->data[index]);
-    // }
-
-    // Extract the values from the state interfaces
-    // uvms_x0_ = {
-    //     state_interfaces_[0].get_value(),
-    //     state_interfaces_[1].get_value(),
-    //     state_interfaces_[2].get_value(),
-    //     state_interfaces_[3].get_value(),
-    //     state_interfaces_[4].get_value(),
-    //     state_interfaces_[5].get_value(),
-    //     state_interfaces_[6].get_value(),
-    //     state_interfaces_[13].get_value(),
-    //     state_interfaces_[15].get_value(),
-    //     state_interfaces_[17].get_value(),
-    //     state_interfaces_[19].get_value(),
-    //     state_interfaces_[7].get_value(),
-    //     state_interfaces_[8].get_value(),
-    //     state_interfaces_[9].get_value(),
-    //     state_interfaces_[10].get_value(),
-    //     state_interfaces_[11].get_value(),
-    //     state_interfaces_[12].get_value(),
-    //     state_interfaces_[14].get_value(),
-    //     state_interfaces_[16].get_value(),
-    //     state_interfaces_[18].get_value(),
-    //     state_interfaces_[20].get_value()};
-
-    // uvms_u0_ = {
-    //     (*uvms_commands)->data[0],
-    //     (*uvms_commands)->data[1],
-    //     (*uvms_commands)->data[2],
-    //     (*uvms_commands)->data[3],
-    //     (*uvms_commands)->data[4],
-    //     (*uvms_commands)->data[5],
-    //     (*uvms_commands)->data[6],
-    //     (*uvms_commands)->data[7],
-    //     (*uvms_commands)->data[8],
-    //     (*uvms_commands)->data[9],
-    //     (*uvms_commands)->data[10],
-    //     (*uvms_commands)->data[11]};
-
-    // uvms_vc_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    // uvms_params_ = {1e-5, 1e-5, 1e-5, 1e-6, 3, 2, 0.85, 0.065};
-    // uvsm_arg_ = {DM(uvms_x0_), DM(uvms_u0_), DM(delta_seconds_), DM(uvms_vc_), DM(uvms_params_), DM(uvms_base_TF_),
-    //                             casadi::DM::eye(21), casadi::DM::eye(14), casadi::DM::eye(21)};
-
-    // uvms_dynamic_response_ = fun_service.uvms_dynamics(uvsm_arg_);
-    // forward_dynamics_res_ = std::vector<double>(uvms_dynamic_response_.at(0));
-
-    // state_interfaces_[0].set_value(forward_dynamics_res[0]);
-    // state_interfaces_[1].set_value(forward_dynamics_res[1]);
-    // state_interfaces_[2].set_value(forward_dynamics_res[2]);
-    // state_interfaces_[3].set_value(forward_dynamics_res[3]);
-    // state_interfaces_[4].set_value(forward_dynamics_res[4]);
-    // state_interfaces_[5].set_value(forward_dynamics_res[5]);
-    // state_interfaces_[6].set_value(forward_dynamics_res[6]);
-
-    // state_interfaces_[13].set_value(forward_dynamics_res[7]);
-    // state_interfaces_[15].set_value(forward_dynamics_res[8]);
-    // state_interfaces_[17].set_value(forward_dynamics_res[9]);
-    // state_interfaces_[19].set_value(forward_dynamics_res[10]);
-
-    // state_interfaces_[7].set_value(forward_dynamics_res[11]);
-    // state_interfaces_[8].set_value(forward_dynamics_res[12]);
-    // state_interfaces_[9].set_value(forward_dynamics_res[13]);
-    // state_interfaces_[10].set_value(forward_dynamics_res[14]);
-    // state_interfaces_[11].set_value(forward_dynamics_res[15]);
-    // state_interfaces_[12].set_value(forward_dynamics_res[16]);
-
-    // state_interfaces_[14].set_value(forward_dynamics_res[17]);
-    // state_interfaces_[16].set_value(forward_dynamics_res[18]);
-    // state_interfaces_[18].set_value(forward_dynamics_res[19]);
-    // state_interfaces_[20].set_value(forward_dynamics_res[20]);
+  // uvms logic here
     return controller_interface::return_type::OK;
   }
 
