@@ -37,61 +37,60 @@ uvms_controller:
     base_TF_translation: [0.140, 0.000, -0.120]
     base_TF_rotation: [3.142, 0.000, 0.000]
     joints:
-      - alphaimu_sensor
+      - alpha_IOs
       - alpha_axis_e
       - alpha_axis_d
       - alpha_axis_c
       - alpha_axis_b 
       - alpha_axis_a
 
-    alphaimu_sensor:
+    alpha_IOs:
       dynamics_identifier: "floating_base"
-      publish_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
-      publish_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
-      subscribe_pose_interface: ["position.x", "position.y", "position.z","orientation.w","orientation.x","orientation.y","orientation.z"]
-      subscribe_velocity_interface: ["velocity.u","velocity.v","velocity.w","velocity.p","velocity.q","velocity.r"]
-      effort_command_interface: [alphathruster1_joint/effort, alphathruster2_joint/effort, alphathruster3_joint/effort,
-       alphathruster4_joint/effort, alphathruster5_joint/effort, alphathruster6_joint/effort, alphathruster7_joint/effort, alphathruster8_joint/effort]
+      pose_topic_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
+      velocity_topic_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
+      pose_command_interface: ["position.x", "position.y", "position.z","position.qw","position.qx","position.qy","position.qz"]
+      velocity_command_interface: ["velocity.x","velocity.y","velocity.z","velocity.roll","velocity.pitch","velocity.yaw"]
+      effort_command_interface: [effort.x, effort.y, effort.z, effort.roll, effort.pitch, effort.yaw]
 
     alpha_axis_e:
       dynamics_identifier: "joint0"
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_command_interface: [alpha_axis_e/effort]
+      pose_topic_interface: ["filtered_position"]
+      velocity_topic_interface: ["filtered_velocity"]
+      pose_command_interface: ["position"]
+      velocity_command_interface: ["velocity"]
+      effort_command_interface: [effort]
 
     alpha_axis_d:
       dynamics_identifier: "joint1"
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_command_interface: [alpha_axis_d/effort]
+      pose_topic_interface: ["filtered_position"]
+      velocity_topic_interface: ["filtered_velocity"]
+      pose_command_interface: ["position"]
+      velocity_command_interface: ["velocity"]
+      effort_command_interface: [effort]
 
     alpha_axis_c:
       dynamics_identifier: "joint2"
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_command_interface: [alpha_axis_c/effort]
+      pose_topic_interface: ["filtered_position"]
+      velocity_topic_interface: ["filtered_velocity"]
+      pose_command_interface: ["position"]
+      velocity_command_interface: ["velocity"]
+      effort_command_interface: [effort]
 
     alpha_axis_b:
       dynamics_identifier: "joint3"
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_command_interface: [alpha_axis_b/effort]
+      pose_topic_interface: ["filtered_position"]
+      velocity_topic_interface: ["filtered_velocity"]
+      pose_command_interface: ["position"]
+      velocity_command_interface: ["velocity"]
+      effort_command_interface: [effort]
       
     alpha_axis_a:
       dynamics_identifier: "endeffector"
-      publish_pose_interface: ["position"]
-      publish_velocity_interface: ["velocity"]
-      subscribe_pose_interface: ["filtered_position"]
-      subscribe_velocity_interface: ["filtered_velocity"]
-      effort_command_interface: [alpha_axis_a/effort]
+      pose_topic_interface: ["filtered_position"]
+      velocity_topic_interface: ["filtered_velocity"]
+      pose_command_interface: ["position"]
+      velocity_command_interface: ["velocity"]
+      effort_command_interface: [effort]
 ```
 
 ### Build Workspace
