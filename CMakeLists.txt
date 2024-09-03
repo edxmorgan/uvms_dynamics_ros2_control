@@ -33,6 +33,7 @@ add_library(uvms_controller SHARED
   src/uvms_base.cpp
   src/uvms_controller.cpp
   src/so_loader.cpp
+  src/dynamics.cpp
 )
 
 target_link_libraries(uvms_controller PUBLIC casadi)

@@ -30,6 +30,7 @@
 #include "uvms_controller/visibility_control.h"
 #include "uvms_controller/so_loader.hpp"
 #include "uvms_controller/uvms_interface.hpp"
+#include "uvms_controller/dynamics.hpp"
 
 namespace uvms_controller
 {
@@ -89,8 +90,7 @@ namespace uvms_controller
      */
     virtual controller_interface::CallbackReturn read_parameters() = 0;
 
-    // Store the dynamics function for the whole body robot
-    casadi_uvms::FunctionLoader fun_service;
+    casadi_uvms::Dynamics model_dynamics;
 
     std::vector<std::string> joints_;
     std::vector<double> uvms_base_TF_;  // Create a new vector to hold the combined tfs
@@ -112,14 +112,6 @@ namespace uvms_controller
     rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
 
     double delta_seconds_; // simulation period dt
-    std::vector<double> uvms_x0_;           // current uvms state
-    std::vector<double> uvms_u0_;           // uvms effort input
-    std::vector<double> uvms_vc_;           // uvms current flow velocity . NB. irrotational assumed
-    std::vector<double> uvms_params_;       // uvms manipulator parameters *{rotor_intial, viscous coefficient}
-    std::vector<double> uvms_base_T_;       // vehicle base_origin to manipulator base_origin (x,y,z, r, p, y)
-    std::vector<DM> uvsm_arg_;              // argument set for dynamics calculation
-    std::vector<DM> uvms_dynamic_response_; // dynamic response
-    std::vector<double> forward_dynamics_res_;   // stores the dynamic response from the forward dynamics simulator as double vector object
   };
 
 } // namespace uvms_controller

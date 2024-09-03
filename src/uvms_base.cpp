@@ -46,13 +46,13 @@ namespace uvms_controller
       std::string casadi_version = CasadiMeta::version();
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::CasADi version: %s", casadi_version.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::Testing casadi ready for operations");
-      // Use CasADi's "external" to load the compiled dynamics functions
-      // fun_service.usage_cplusplus_checks("test", "libtest.so", "UVMS Controller");
-      // fun_service.uvms_dynamics = fun_service.load_casadi_fun("uvms_stochastic_Alloc", "libUVMSnext.so");
+
+      // Resize to number of simulation worlds
+      model_dynamics.uvms_world.resize(1);
     }
     catch (const std::exception &e)
     {
-      fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
+      fprintf(stderr, "Exception thrown during init staginit_dynamicse with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
     // RCLCPP_INFO(get_node()->get_logger(), "on_init successful");
@@ -129,9 +129,43 @@ namespace uvms_controller
   {
     auto uvms_commands = rt_command_ptr_.readFromRT();
 
+    // no command received yet
+    if (!uvms_commands || !(*uvms_commands))
+    {
+      RCLCPP_ERROR_THROTTLE(
+          get_node()->get_logger(), *(get_node()->get_clock()), 1000,
+          "uvms commands not recieved");
+      return controller_interface::return_type::OK;
+    };
+
+    if ((*uvms_commands)->data.size() != 10)
+    {
+      RCLCPP_ERROR_THROTTLE(
+          get_node()->get_logger(), *(get_node()->get_clock()), 1000,
+          "reference states size (%zu) does not match number of interfaces (%zu)",
+          (*uvms_commands)->data.size(), state_interfaces_.size());
+
+      return controller_interface::return_type::ERROR;
+    };
+
     delta_seconds_ = period.seconds();
 
-  // uvms logic here
+    model_dynamics.uvms_world[0].current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+    model_dynamics.uvms_world[0].current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    model_dynamics.uvms_world[0].force_input = {0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0};
+    model_dynamics.uvms_world[0].model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
+    model_dynamics.uvms_world[0].dt = delta_seconds_;
+    model_dynamics.uvms_world[0].id = 0;
+
+    model_dynamics.decoupled_simulate(model_dynamics.uvms_world[0].id);
+
+    // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
+    //             model_dynamics.uvms_world[0].next_position[7],
+    //             model_dynamics.uvms_world[0].next_position[8],
+    //             model_dynamics.uvms_world[0].next_position[9],
+    //             model_dynamics.uvms_world[0].next_position[10]);
+
+    // uvms logic here
     return controller_interface::return_type::OK;
   }
 

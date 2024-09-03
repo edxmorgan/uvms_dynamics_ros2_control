@@ -28,7 +28,10 @@ namespace casadi_uvms
 
     public:
         Function tester; // uvms casadi tester
-        Function uvms_dynamics; // uvms dynamics
+        Function decoupled_manipulator_uvms_dynamics; // uvms decoupled_dynamics - manipulator
+        Function decoupled_vehicle_uvms_dynamics; // uvms decoupled_dynamics - vehicle
+        Function coupled_uvms_dynamics; // uvms coupled_dynamics
+        Function manipulator_forward_kinematics; //manipulator forward kinematics
 
         FunctionLoader() = default;
 
