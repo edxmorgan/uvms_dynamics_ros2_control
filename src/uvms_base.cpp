@@ -48,11 +48,13 @@ namespace uvms_controller
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::Testing casadi ready for operations");
 
       // Resize to number of simulation worlds
-      model_dynamics.uvms_world.resize(1);
+      n = 1;
+      model_dynamics.uvms_world.resize(n);
+      total_command_size = n * force_input_size;
     }
     catch (const std::exception &e)
     {
-      fprintf(stderr, "Exception thrown during init staginit_dynamicse with message: %s \n", e.what());
+      fprintf(stderr, "Exception thrown during init stage with message: %s \n", e.what());
       return controller_interface::CallbackReturn::ERROR;
     }
     // RCLCPP_INFO(get_node()->get_logger(), "on_init successful");
@@ -69,7 +71,7 @@ namespace uvms_controller
     }
 
     uvms_command_subscriber_ = get_node()->create_subscription<CmdType>(
-        "~/uvms_commands", rclcpp::SystemDefaultsQoS(),
+        "~/uvms/commands", rclcpp::SystemDefaultsQoS(),
         [this](const CmdType::SharedPtr msg)
         { rt_command_ptr_.writeFromNonRT(msg); });
 
@@ -99,19 +101,19 @@ namespace uvms_controller
   controller_interface::CallbackReturn UvmsControllerBase::on_activate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
-    std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
-        ordered_interfaces;
+    // std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
+    //     ordered_interfaces;
 
-    if (
-        !controller_interface::get_ordered_interfaces(
-            state_interfaces_, state_interface_types_, std::string(""), ordered_interfaces) ||
-        state_interface_types_.size() != ordered_interfaces.size())
-    {
-      RCLCPP_ERROR(
-          get_node()->get_logger(), "Expected %zu state interfaces, got %zu",
-          state_interface_types_.size(), ordered_interfaces.size());
-      return controller_interface::CallbackReturn::ERROR;
-    }
+    // if (
+    //     !controller_interface::get_ordered_interfaces(
+    //         state_interfaces_, state_interface_types_, std::string(""), ordered_interfaces) ||
+    //     state_interface_types_.size() != ordered_interfaces.size())
+    // {
+    //   RCLCPP_ERROR(
+    //       get_node()->get_logger(), "Expected %zu state interfaces, got %zu",
+    //       state_interface_types_.size(), ordered_interfaces.size());
+    //   return controller_interface::CallbackReturn::ERROR;
+    // }
 
     return controller_interface::CallbackReturn::SUCCESS;
   }
@@ -138,35 +140,59 @@ namespace uvms_controller
       return controller_interface::return_type::OK;
     };
 
-    if ((*uvms_commands)->data.size() != 10)
+    if ((*uvms_commands)->data.size() != total_command_size)
     {
       RCLCPP_ERROR_THROTTLE(
           get_node()->get_logger(), *(get_node()->get_clock()), 1000,
-          "reference states size (%zu) does not match number of interfaces (%zu)",
-          (*uvms_commands)->data.size(), state_interfaces_.size());
+          "reference commands size (%zu) does not match number of command interfaces (%zu)",
+          (*uvms_commands)->data.size(), total_command_size);
 
       return controller_interface::return_type::ERROR;
     };
 
-    delta_seconds_ = period.seconds();
+  //   const auto &layout = (*uvms_commands)->layout;
 
-    model_dynamics.uvms_world[0].current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-    model_dynamics.uvms_world[0].current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    model_dynamics.uvms_world[0].force_input = {0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0};
-    model_dynamics.uvms_world[0].model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
-    model_dynamics.uvms_world[0].dt = delta_seconds_;
-    model_dynamics.uvms_world[0].id = 0;
+  //   RCLCPP_INFO(get_node()->get_logger(),
+  //               "Layout info: \n"
+  //               "  Dim: \n"
+  //               "    Label: %s, Size: %u, Stride: %u\n"
+  //               "    Label: %s, Size: %u, Stride: %u\n"
+  //               "  Data Offset: %u", // Changed to %u for unsigned int
+  //               layout.dim[0].label.c_str(), layout.dim[0].size, layout.dim[0].stride,
+  //               layout.dim[1].label.c_str(), layout.dim[1].size, layout.dim[1].stride,
+  //               layout.data_offset);
 
-    model_dynamics.decoupled_simulate(model_dynamics.uvms_world[0].id);
+  // RCLCPP_INFO(get_node()->get_logger(), "published data (%f, %f, %f, %f, %f, %f, %f, %f, %f, %f)",
+  //             (*uvms_commands)->data[0],
+  //             (*uvms_commands)->data[1],
+  //             (*uvms_commands)->data[2],
+  //             (*uvms_commands)->data[3],
+  //             (*uvms_commands)->data[4],
+  //             (*uvms_commands)->data[5],
+  //             (*uvms_commands)->data[6],
+  //             (*uvms_commands)->data[7],
+  //             (*uvms_commands)->data[8],
+  //             (*uvms_commands)->data[9]);
 
-    // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
-    //             model_dynamics.uvms_world[0].next_position[7],
-    //             model_dynamics.uvms_world[0].next_position[8],
-    //             model_dynamics.uvms_world[0].next_position[9],
-    //             model_dynamics.uvms_world[0].next_position[10]);
+  delta_seconds_ = period.seconds();
 
-    // uvms logic here
-    return controller_interface::return_type::OK;
-  }
+  model_dynamics.uvms_world[0].current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+  model_dynamics.uvms_world[0].current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  model_dynamics.uvms_world[0].force_input = {0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0};
+  model_dynamics.uvms_world[0].model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
+  model_dynamics.uvms_world[0].dt = delta_seconds_;
+  model_dynamics.uvms_world[0].id = 0;
+
+  model_dynamics.decoupled_simulate(model_dynamics.uvms_world[0].id);
+
+  // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
+  //             model_dynamics.uvms_world[0].next_position[7],
+  //             model_dynamics.uvms_world[0].next_position[8],
+  //             model_dynamics.uvms_world[0].next_position[9],
+  //             model_dynamics.uvms_world[0].next_position[10]);
+
+  // uvms logic here
+  return controller_interface::return_type::OK;
+}
 
 } // namespace uvms_controller

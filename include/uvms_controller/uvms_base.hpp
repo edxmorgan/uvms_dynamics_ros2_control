@@ -29,7 +29,6 @@
 
 #include "uvms_controller/visibility_control.h"
 #include "uvms_controller/so_loader.hpp"
-#include "uvms_controller/uvms_interface.hpp"
 #include "uvms_controller/dynamics.hpp"
 
 namespace uvms_controller
@@ -93,17 +92,7 @@ namespace uvms_controller
     casadi_uvms::Dynamics model_dynamics;
 
     std::vector<std::string> joints_;
-    std::vector<double> uvms_base_TF_;  // Create a new vector to hold the combined tfs
-
-    std::string uvms_dynamics_identifier_;
-    std::vector<std::string> uvms_pose_topic_interface_;
-    std::vector<std::string> uvms_velocity_topic_interface_;
-
-
-    std::vector<std::string> uvms_pose_command_interface_;
-    std::vector<std::string> uvms_velocity_command_interface_;
-
-    std::vector<std::string> uvms_effort_command_interface_;
+    std::vector<double> uvms_base_TF_; // Create a new vector to hold the combined tfs
 
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;
@@ -112,6 +101,9 @@ namespace uvms_controller
     rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
 
     double delta_seconds_; // simulation period dt
+    size_t n;
+    size_t force_input_size = casadi_uvms::Dynamics::Model().force_input.size();
+    size_t total_command_size;
   };
 
 } // namespace uvms_controller
