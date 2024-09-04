@@ -101,19 +101,19 @@ namespace uvms_controller
   controller_interface::CallbackReturn UvmsControllerBase::on_activate(
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
-    // std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
-    //     ordered_interfaces;
+    std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
+        ordered_interfaces;
 
-    // if (
-    //     !controller_interface::get_ordered_interfaces(
-    //         state_interfaces_, state_interface_types_, std::string(""), ordered_interfaces) ||
-    //     state_interface_types_.size() != ordered_interfaces.size())
-    // {
-    //   RCLCPP_ERROR(
-    //       get_node()->get_logger(), "Expected %zu state interfaces, got %zu",
-    //       state_interface_types_.size(), ordered_interfaces.size());
-    //   return controller_interface::CallbackReturn::ERROR;
-    // }
+    if (
+        !controller_interface::get_ordered_interfaces(
+            state_interfaces_, state_interface_types_, std::string(""), ordered_interfaces) ||
+        state_interface_types_.size() != ordered_interfaces.size())
+    {
+      RCLCPP_ERROR(
+          get_node()->get_logger(), "Expected %zu state interfaces, got %zu",
+          state_interface_types_.size(), ordered_interfaces.size());
+      return controller_interface::CallbackReturn::ERROR;
+    }
 
     return controller_interface::CallbackReturn::SUCCESS;
   }

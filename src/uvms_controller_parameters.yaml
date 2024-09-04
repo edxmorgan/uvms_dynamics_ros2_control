@@ -1,13 +1,30 @@
 uvms_controller:
-  agent:
+  agents:
     type: string_array
-    description: "list agents to spawn in simulation"
+    description: "specifies agents to spawn in simulator."
     read_only: true
     validation:
       not_empty<>: []
       unique<>: []
 
-  __map_agent:
+  joints:
+    type: string_array
+    description: "specifies which joints will be used by the controller."
+    read_only: true
+    validation:
+      not_empty<>: []
+      fixed_size<>: [6]
+      unique<>: []
+      subset_of<>: [[floating_base, joint0, joint1, joint2, joint3, endeffector]]
+
+  __map_agents:
+    name_space:
+      type: string
+      description: "maps name_space to joints"
+      read_only: true
+      validation:
+        not_empty<>: null
+
     base_TF_translation:
       type: double_array
       description: "specifies transformation from vehicle base to manipulator base"
@@ -23,26 +40,15 @@ uvms_controller:
       validation:
         not_empty<>: []
         fixed_size<>: [3]
-        
-    joints:
-      type: string_array
-      description: "specifies which joints will be used by the controller for mapped agent"
+
+  __map_joints:
+    name:
+      type: string
+      description: "maps to the joints used in the dynamics calculation"
       read_only: true
       validation:
-        not_empty<>: []
-        fixed_size<>: [6]
-        unique<>: []
-        
-  dof:
-    type: string_array
-    description: "specifies which dof will be used by the controller."
-    read_only: true
-    validation:
-      not_empty<>: []
-      fixed_size<>: [6]
-      unique<>: []
+        not_empty<>: null
 
-  __map_dof:
     pose_topic_interface:
       type: string_array
       description: "subscribe_ position map parameter with struct name"
@@ -87,3 +93,6 @@ uvms_controller:
         not_empty<>: []
         unique<>: []
         size_lt<>: [9]
+
+ 
+

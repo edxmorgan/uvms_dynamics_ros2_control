@@ -92,7 +92,7 @@ namespace uvms_controller
     casadi_uvms::Dynamics model_dynamics;
 
     std::vector<std::string> joints_;
-    std::vector<double> uvms_base_TF_; // Create a new vector to hold the combined tfs
+    std::vector<std::string> agents_;
 
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;
