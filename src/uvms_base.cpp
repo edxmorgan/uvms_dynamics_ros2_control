@@ -46,11 +46,6 @@ namespace uvms_controller
       std::string casadi_version = CasadiMeta::version();
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::CasADi version: %s", casadi_version.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "UVMS Controller::Testing casadi ready for operations");
-
-      // Resize to number of simulation worlds
-      n = 1;
-      model_dynamics.uvms_world.resize(n);
-      total_command_size = n * force_input_size;
     }
     catch (const std::exception &e)
     {
@@ -69,6 +64,12 @@ namespace uvms_controller
     {
       return ret;
     }
+
+    n = agents_.size();
+    RCLCPP_INFO(get_node()->get_logger(), "number of agent : %zu", n);
+    // Resize to number of simulation worlds
+    model_dynamics.uvms_world.resize(n);
+    total_command_size = n * force_input_size;
 
     uvms_command_subscriber_ = get_node()->create_subscription<CmdType>(
         "~/uvms/commands", rclcpp::SystemDefaultsQoS(),
@@ -150,49 +151,49 @@ namespace uvms_controller
       return controller_interface::return_type::ERROR;
     };
 
-  //   const auto &layout = (*uvms_commands)->layout;
+    const auto &layout = (*uvms_commands)->layout;
 
-  //   RCLCPP_INFO(get_node()->get_logger(),
-  //               "Layout info: \n"
-  //               "  Dim: \n"
-  //               "    Label: %s, Size: %u, Stride: %u\n"
-  //               "    Label: %s, Size: %u, Stride: %u\n"
-  //               "  Data Offset: %u", // Changed to %u for unsigned int
-  //               layout.dim[0].label.c_str(), layout.dim[0].size, layout.dim[0].stride,
-  //               layout.dim[1].label.c_str(), layout.dim[1].size, layout.dim[1].stride,
-  //               layout.data_offset);
+    RCLCPP_INFO(get_node()->get_logger(),
+                "Layout info: \n"
+                "  Dim: \n"
+                "    Label: %s, Size: %u, Stride: %u\n"
+                "    Label: %s, Size: %u, Stride: %u\n"
+                "  Data Offset: %u", // Changed to %u for unsigned int
+                layout.dim[0].label.c_str(), layout.dim[0].size, layout.dim[0].stride,
+                layout.dim[1].label.c_str(), layout.dim[1].size, layout.dim[1].stride,
+                layout.data_offset);
 
-  // RCLCPP_INFO(get_node()->get_logger(), "published data (%f, %f, %f, %f, %f, %f, %f, %f, %f, %f)",
-  //             (*uvms_commands)->data[0],
-  //             (*uvms_commands)->data[1],
-  //             (*uvms_commands)->data[2],
-  //             (*uvms_commands)->data[3],
-  //             (*uvms_commands)->data[4],
-  //             (*uvms_commands)->data[5],
-  //             (*uvms_commands)->data[6],
-  //             (*uvms_commands)->data[7],
-  //             (*uvms_commands)->data[8],
-  //             (*uvms_commands)->data[9]);
+    RCLCPP_INFO(get_node()->get_logger(), "published data (%f, %f, %f, %f, %f, %f, %f, %f, %f, %f)",
+                (*uvms_commands)->data[0],
+                (*uvms_commands)->data[1],
+                (*uvms_commands)->data[2],
+                (*uvms_commands)->data[3],
+                (*uvms_commands)->data[4],
+                (*uvms_commands)->data[5],
+                (*uvms_commands)->data[6],
+                (*uvms_commands)->data[7],
+                (*uvms_commands)->data[8],
+                (*uvms_commands)->data[9]);
 
-  delta_seconds_ = period.seconds();
+    delta_seconds_ = period.seconds();
 
-  model_dynamics.uvms_world[0].current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-  model_dynamics.uvms_world[0].current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  model_dynamics.uvms_world[0].force_input = {0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0};
-  model_dynamics.uvms_world[0].model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
-  model_dynamics.uvms_world[0].dt = delta_seconds_;
-  model_dynamics.uvms_world[0].id = 0;
+    model_dynamics.uvms_world[0].current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+    model_dynamics.uvms_world[0].current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    model_dynamics.uvms_world[0].force_input = {0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0};
+    model_dynamics.uvms_world[0].model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
+    model_dynamics.uvms_world[0].dt = delta_seconds_;
+    model_dynamics.uvms_world[0].id = 0;
 
-  model_dynamics.decoupled_simulate(model_dynamics.uvms_world[0].id);
+    model_dynamics.decoupled_simulate(model_dynamics.uvms_world[0].id);
 
-  // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
-  //             model_dynamics.uvms_world[0].next_position[7],
-  //             model_dynamics.uvms_world[0].next_position[8],
-  //             model_dynamics.uvms_world[0].next_position[9],
-  //             model_dynamics.uvms_world[0].next_position[10]);
+    // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
+    //             model_dynamics.uvms_world[0].next_position[7],
+    //             model_dynamics.uvms_world[0].next_position[8],
+    //             model_dynamics.uvms_world[0].next_position[9],
+    //             model_dynamics.uvms_world[0].next_position[10]);
 
-  // uvms logic here
-  return controller_interface::return_type::OK;
-}
+    // uvms logic here
+    return controller_interface::return_type::OK;
+  }
 
 } // namespace uvms_controller
