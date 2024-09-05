@@ -151,46 +151,37 @@ namespace uvms_controller
       return controller_interface::return_type::ERROR;
     };
 
-    const auto &layout = (*uvms_commands)->layout;
-
-    RCLCPP_INFO(get_node()->get_logger(),
-                "Layout info: \n"
-                "  Dim: \n"
-                "    Label: %s, Size: %u, Stride: %u\n"
-                "    Label: %s, Size: %u, Stride: %u\n"
-                "  Data Offset: %u", // Changed to %u for unsigned int
-                layout.dim[0].label.c_str(), layout.dim[0].size, layout.dim[0].stride,
-                layout.dim[1].label.c_str(), layout.dim[1].size, layout.dim[1].stride,
-                layout.data_offset);
-
-    RCLCPP_INFO(get_node()->get_logger(), "published data (%f, %f, %f, %f, %f, %f, %f, %f, %f, %f)",
-                (*uvms_commands)->data[0],
-                (*uvms_commands)->data[1],
-                (*uvms_commands)->data[2],
-                (*uvms_commands)->data[3],
-                (*uvms_commands)->data[4],
-                (*uvms_commands)->data[5],
-                (*uvms_commands)->data[6],
-                (*uvms_commands)->data[7],
-                (*uvms_commands)->data[8],
-                (*uvms_commands)->data[9]);
+    // RCLCPP_INFO(get_node()->get_logger(), "published data (%f, %f, %f, %f, %f, %f, %f, %f, %f, %f)",
+    //             (*uvms_commands)->data[0],
+    //             (*uvms_commands)->data[1],
+    //             (*uvms_commands)->data[2],
+    //             (*uvms_commands)->data[3],
+    //             (*uvms_commands)->data[4],
+    //             (*uvms_commands)->data[5],
+    //             (*uvms_commands)->data[6],
+    //             (*uvms_commands)->data[7],
+    //             (*uvms_commands)->data[8],
+    //             (*uvms_commands)->data[9]);
 
     delta_seconds_ = period.seconds();
 
-    model_dynamics.uvms_world[0].current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-    model_dynamics.uvms_world[0].current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    model_dynamics.uvms_world[0].force_input = {0, 0, 0, 0, 0, 0, 0.05, 0, 0, 0};
-    model_dynamics.uvms_world[0].model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
-    model_dynamics.uvms_world[0].dt = delta_seconds_;
-    model_dynamics.uvms_world[0].id = 0;
+    for (std::size_t j = 0; j < model_dynamics.uvms_world.size(); j++)
+    {
+      auto &uvms = model_dynamics.uvms_world[j];
+      uvms.id = static_cast<int>(j);
+      uvms.current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+      uvms.current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      uvms.force_input.assign((*uvms_commands)->data.begin(), (*uvms_commands)->data.begin() + 10);
+      uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
+      uvms.dt = delta_seconds_;
 
-    model_dynamics.decoupled_simulate(model_dynamics.uvms_world[0].id);
-
-    // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
-    //             model_dynamics.uvms_world[0].next_position[7],
-    //             model_dynamics.uvms_world[0].next_position[8],
-    //             model_dynamics.uvms_world[0].next_position[9],
-    //             model_dynamics.uvms_world[0].next_position[10]);
+      model_dynamics.decoupled_simulate(model_dynamics.uvms_world[j].id);
+      RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
+                  model_dynamics.uvms_world[j].next_position[7],
+                  model_dynamics.uvms_world[j].next_position[8],
+                  model_dynamics.uvms_world[j].next_position[9],
+                  model_dynamics.uvms_world[j].next_position[10]);
+    };
 
     // uvms logic here
     return controller_interface::return_type::OK;
