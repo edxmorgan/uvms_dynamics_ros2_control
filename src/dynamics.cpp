@@ -45,7 +45,7 @@ void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
                          last_four_velocity,
                          last_four_forces,
                          uvms_world[agent_id].model_p,
-                         uvms_world[agent_id].dt};
+                         dt};
 
     arm_sim = fun_service.decoupled_manipulator_uvms_dynamics(simulate_argument);
 

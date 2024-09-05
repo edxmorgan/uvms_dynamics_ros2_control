@@ -99,8 +99,7 @@ namespace uvms_controller
 
     realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
     rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
-
-    double delta_seconds_; // simulation period dt
+    
     size_t n;
     size_t force_input_size = casadi_uvms::Dynamics::Model().force_input.size();
     size_t total_command_size;

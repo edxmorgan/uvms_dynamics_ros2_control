@@ -65,10 +65,10 @@ namespace uvms_controller
       return ret;
     }
 
-    n = agents_.size();
-    RCLCPP_INFO(get_node()->get_logger(), "number of agent : %zu", n);
+    RCLCPP_INFO(get_node()->get_logger(), "number of agent : %zu ", n);
+    RCLCPP_INFO(get_node()->get_logger(), "force input size of single agent : %zu ", force_input_size);
+    
     // Resize to number of simulation worlds
-    model_dynamics.uvms_world.resize(n);
     total_command_size = n * force_input_size;
 
     uvms_command_subscriber_ = get_node()->create_subscription<CmdType>(
@@ -163,24 +163,23 @@ namespace uvms_controller
     //             (*uvms_commands)->data[8],
     //             (*uvms_commands)->data[9]);
 
-    delta_seconds_ = period.seconds();
-
+    model_dynamics.dt = period.seconds();
     for (std::size_t j = 0; j < model_dynamics.uvms_world.size(); j++)
     {
       auto &uvms = model_dynamics.uvms_world[j];
-      uvms.id = static_cast<int>(j);
+
       uvms.current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
       uvms.current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
       uvms.force_input.assign((*uvms_commands)->data.begin(), (*uvms_commands)->data.begin() + 10);
       uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
-      uvms.dt = delta_seconds_;
 
       model_dynamics.decoupled_simulate(model_dynamics.uvms_world[j].id);
-      RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%f, %f, %f, %f)",
-                  model_dynamics.uvms_world[j].next_position[7],
-                  model_dynamics.uvms_world[j].next_position[8],
-                  model_dynamics.uvms_world[j].next_position[9],
-                  model_dynamics.uvms_world[j].next_position[10]);
+      // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%u, %f, %f, %f, %f)",
+      //             model_dynamics.uvms_world[j].id,
+      //             model_dynamics.uvms_world[j].next_position[7],
+      //             model_dynamics.uvms_world[j].next_position[8],
+      //             model_dynamics.uvms_world[j].next_position[9],
+      //             model_dynamics.uvms_world[j].next_position[10]);
     };
 
     // uvms logic here

@@ -33,6 +33,7 @@ namespace casadi_uvms
     public:
         struct Model
         {
+            int id;
             std::vector<DM> current_position = std::vector<DM>(11);
             std::vector<double> next_position = std::vector<double>(11);
             std::vector<DM> current_velocity = std::vector<DM>(10);
@@ -40,13 +41,17 @@ namespace casadi_uvms
             std::vector<DM> force_input = std::vector<DM>(10);
             std::vector<DM> model_p = std::vector<DM>(12);
             std::vector<DM> flow_velocity = std::vector<DM>(6);
-            std::vector<DM> uvms_base_T_= std::vector<DM>(6); // vehicle base_origin to manipulator base_origin (x,y,z, r, p, y)
-            DM dt;
-            int id;
+            std::vector<double> uvms_base_TF_;
+            std::vector<int> poseSubscriber;
+            std::vector<int> poseCommander;
+            std::vector<int> velSubscriber;
+            std::vector<int> velCommander;
+            std::vector<int> effortCommander;
         };
 
         std::vector<Model> uvms_world{}; // vector for future enhancement
 
+        DM dt;
         Dynamics()
         {
             init_dynamics(); // Automatically call init_dynamics upon instantiation
