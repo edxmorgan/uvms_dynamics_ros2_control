@@ -67,7 +67,7 @@ namespace uvms_controller
 
     RCLCPP_INFO(get_node()->get_logger(), "number of agent : %zu ", n);
     RCLCPP_INFO(get_node()->get_logger(), "force input size of single agent : %zu ", force_input_size);
-    
+
     // Resize to number of simulation worlds
     total_command_size = n * force_input_size;
 
@@ -131,6 +131,17 @@ namespace uvms_controller
       const rclcpp::Time & /*time*/, const rclcpp::Duration &period)
   {
     auto uvms_commands = rt_command_ptr_.readFromRT();
+    auto &uvmsds_ = model_dynamics.uvms_world[0];
+
+    RCLCPP_INFO(get_node()->get_logger(), "after simulation position vehcile (%u, %f, %f, %f, %f, %f, %f, %f)",
+                model_dynamics.uvms_world[0].id,
+                state_interfaces_[uvmsds_.poseSubscriber[0]].get_value(),
+                state_interfaces_[uvmsds_.poseSubscriber[1]].get_value(),
+                state_interfaces_[uvmsds_.poseSubscriber[2]].get_value(),
+                state_interfaces_[uvmsds_.poseSubscriber[3]].get_value(),
+                state_interfaces_[uvmsds_.poseSubscriber[4]].get_value(),
+                state_interfaces_[uvmsds_.poseSubscriber[5]].get_value(),
+                state_interfaces_[uvmsds_.poseSubscriber[6]].get_value());
 
     // no command received yet
     if (!uvms_commands || !(*uvms_commands))
@@ -151,35 +162,79 @@ namespace uvms_controller
       return controller_interface::return_type::ERROR;
     };
 
-    // RCLCPP_INFO(get_node()->get_logger(), "published data (%f, %f, %f, %f, %f, %f, %f, %f, %f, %f)",
-    //             (*uvms_commands)->data[0],
-    //             (*uvms_commands)->data[1],
-    //             (*uvms_commands)->data[2],
-    //             (*uvms_commands)->data[3],
-    //             (*uvms_commands)->data[4],
-    //             (*uvms_commands)->data[5],
-    //             (*uvms_commands)->data[6],
-    //             (*uvms_commands)->data[7],
-    //             (*uvms_commands)->data[8],
-    //             (*uvms_commands)->data[9]);
-
     model_dynamics.dt = period.seconds();
     for (std::size_t j = 0; j < model_dynamics.uvms_world.size(); j++)
     {
       auto &uvms = model_dynamics.uvms_world[j];
 
-      uvms.current_position = {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-      uvms.current_velocity = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      uvms.current_position = {
+          state_interfaces_[uvms.poseSubscriber[0]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[1]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[2]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[3]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[4]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[5]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[6]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[7]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[8]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[9]].get_value(),
+          state_interfaces_[uvms.poseSubscriber[10]].get_value()};
+
+      uvms.current_velocity = {
+          state_interfaces_[uvms.velSubscriber[0]].get_value(),
+          state_interfaces_[uvms.velSubscriber[1]].get_value(),
+          state_interfaces_[uvms.velSubscriber[2]].get_value(),
+          state_interfaces_[uvms.velSubscriber[3]].get_value(),
+          state_interfaces_[uvms.velSubscriber[4]].get_value(),
+          state_interfaces_[uvms.velSubscriber[5]].get_value(),
+          state_interfaces_[uvms.velSubscriber[6]].get_value(),
+          state_interfaces_[uvms.velSubscriber[7]].get_value(),
+          state_interfaces_[uvms.velSubscriber[8]].get_value(),
+          state_interfaces_[uvms.velSubscriber[9]].get_value()};
+
       uvms.force_input.assign((*uvms_commands)->data.begin(), (*uvms_commands)->data.begin() + 10);
+
+      uvms.flow_velocity = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
       uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
 
       model_dynamics.decoupled_simulate(model_dynamics.uvms_world[j].id);
-      // RCLCPP_INFO(get_node()->get_logger(), "after simulation position (%u, %f, %f, %f, %f)",
-      //             model_dynamics.uvms_world[j].id,
-      //             model_dynamics.uvms_world[j].next_position[7],
-      //             model_dynamics.uvms_world[j].next_position[8],
-      //             model_dynamics.uvms_world[j].next_position[9],
-      //             model_dynamics.uvms_world[j].next_position[10]);
+
+      command_interfaces_[uvms.poseCommander[0]].set_value(uvms.next_position[0]);
+      command_interfaces_[uvms.poseCommander[1]].set_value(uvms.next_position[1]);
+      command_interfaces_[uvms.poseCommander[2]].set_value(uvms.next_position[2]);
+      command_interfaces_[uvms.poseCommander[3]].set_value(uvms.next_position[3]);
+      command_interfaces_[uvms.poseCommander[4]].set_value(uvms.next_position[4]);
+      command_interfaces_[uvms.poseCommander[5]].set_value(uvms.next_position[5]);
+      command_interfaces_[uvms.poseCommander[6]].set_value(uvms.next_position[6]);
+
+      command_interfaces_[uvms.poseCommander[7]].set_value(uvms.next_position[7]);
+      command_interfaces_[uvms.poseCommander[8]].set_value(uvms.next_position[8]);
+      command_interfaces_[uvms.poseCommander[9]].set_value(uvms.next_position[9]);
+      command_interfaces_[uvms.poseCommander[10]].set_value(uvms.next_position[10]);
+
+      command_interfaces_[uvms.velCommander[0]].set_value(uvms.next_velocity[0]);
+      command_interfaces_[uvms.velCommander[1]].set_value(uvms.next_velocity[1]);
+      command_interfaces_[uvms.velCommander[2]].set_value(uvms.next_velocity[2]);
+      command_interfaces_[uvms.velCommander[3]].set_value(uvms.next_velocity[3]);
+      command_interfaces_[uvms.velCommander[4]].set_value(uvms.next_velocity[4]);
+      command_interfaces_[uvms.velCommander[5]].set_value(uvms.next_velocity[5]);
+
+      command_interfaces_[uvms.velCommander[6]].set_value(uvms.next_velocity[6]);
+      command_interfaces_[uvms.velCommander[7]].set_value(uvms.next_velocity[7]);
+      command_interfaces_[uvms.velCommander[8]].set_value(uvms.next_velocity[8]);
+      command_interfaces_[uvms.velCommander[9]].set_value(uvms.next_velocity[9]);
+
+      command_interfaces_[uvms.effortCommander[0]].set_value(uvms.force_input[0]);
+      command_interfaces_[uvms.effortCommander[1]].set_value(uvms.force_input[1]);
+      command_interfaces_[uvms.effortCommander[2]].set_value(uvms.force_input[2]);
+      command_interfaces_[uvms.effortCommander[3]].set_value(uvms.force_input[3]);
+      command_interfaces_[uvms.effortCommander[4]].set_value(uvms.force_input[4]);
+      command_interfaces_[uvms.effortCommander[5]].set_value(uvms.force_input[5]);
+
+      command_interfaces_[uvms.effortCommander[6]].set_value(uvms.force_input[6]);
+      command_interfaces_[uvms.effortCommander[7]].set_value(uvms.force_input[7]);
+      command_interfaces_[uvms.effortCommander[8]].set_value(uvms.force_input[8]);
+      command_interfaces_[uvms.effortCommander[9]].set_value(uvms.force_input[9]);
     };
 
     // uvms logic here

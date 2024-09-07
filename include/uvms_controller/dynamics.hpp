@@ -27,8 +27,10 @@ namespace casadi_uvms
     private:
         // Store the dynamics function for the whole body robot
         casadi_uvms::FunctionLoader fun_service;
-        std::vector<DM> simulate_argument;
+        std::vector<DM> arm_simulate_argument;
         std::vector<DM> arm_sim;
+        std::vector<DM> vehicle_simulate_argument;
+        std::vector<DM> vehicle_sim;
 
     public:
         struct Model
@@ -38,7 +40,7 @@ namespace casadi_uvms
             std::vector<double> next_position = std::vector<double>(11);
             std::vector<DM> current_velocity = std::vector<DM>(10);
             std::vector<double> next_velocity = std::vector<double>(10);
-            std::vector<DM> force_input = std::vector<DM>(10);
+            std::vector<double> force_input = std::vector<double>(10);
             std::vector<DM> model_p = std::vector<DM>(12);
             std::vector<DM> flow_velocity = std::vector<DM>(6);
             std::vector<double> uvms_base_TF_;
@@ -47,6 +49,7 @@ namespace casadi_uvms
             std::vector<int> velSubscriber;
             std::vector<int> velCommander;
             std::vector<int> effortCommander;
+            bool grabber_open;
         };
 
         std::vector<Model> uvms_world{}; // vector for future enhancement
