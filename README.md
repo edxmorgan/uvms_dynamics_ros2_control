@@ -14,7 +14,7 @@ Ros2_control plugin providing virtual underwater vehicle and manipulator capabil
 
 ```bash
 cd ~/your_workspace/src
-git clone https://github.com/edxmorgan/uvms_ros2_controller
+git clone https://github.com/edxmorgan/uvms_dynamics_ros2_control
 ```
 ### Add parameter library generation to project
 **package.xml**
