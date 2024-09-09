@@ -97,10 +97,16 @@ namespace uvms_controller
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;
 
+    size_t n;
+
+  private:
+    // Helper functions
+    std::vector<double> get_state_values(const std::vector<int> &indices, std::size_t count);
+    void set_command_values(const std::vector<int> &indices, const std::vector<double> &values, std::size_t count);
     realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
     rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
-    
-    size_t n;
+
+    // private attributes
     size_t force_input_size = casadi_uvms::Dynamics::Model().force_input.size();
     size_t total_command_size;
   };

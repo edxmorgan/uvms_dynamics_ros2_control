@@ -78,7 +78,6 @@ void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
     uvms_world[agent_id].next_velocity[4] = vehicle_sim.at(0).nonzeros()[11];
     uvms_world[agent_id].next_velocity[5] = vehicle_sim.at(0).nonzeros()[12];
 
-    
     uvms_world[agent_id].next_position[7] = arm_sim.at(0).nonzeros()[0];
     uvms_world[agent_id].next_position[8] = arm_sim.at(0).nonzeros()[1];
     uvms_world[agent_id].next_position[9] = arm_sim.at(0).nonzeros()[2];

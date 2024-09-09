@@ -36,13 +36,13 @@ namespace casadi_uvms
         struct Model
         {
             int id;
-            std::vector<DM> current_position = std::vector<DM>(11);
+            std::vector<double> current_position = std::vector<double>(11);
             std::vector<double> next_position = std::vector<double>(11);
-            std::vector<DM> current_velocity = std::vector<DM>(10);
+            std::vector<double> current_velocity = std::vector<double>(10);
             std::vector<double> next_velocity = std::vector<double>(10);
             std::vector<double> force_input = std::vector<double>(10);
-            std::vector<DM> model_p = std::vector<DM>(12);
-            std::vector<DM> flow_velocity = std::vector<DM>(6);
+            std::vector<double> model_p = std::vector<double>(12);
+            std::vector<double> flow_velocity = std::vector<double>(6);
             std::vector<double> uvms_base_TF_;
             std::vector<int> poseSubscriber;
             std::vector<int> poseCommander;
