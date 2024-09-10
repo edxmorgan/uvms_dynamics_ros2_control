@@ -144,7 +144,7 @@ namespace uvms_controller
 
         if (params_.joints_map.at(joint_).velocity_topic_interface.empty())
         {
-          RCLCPP_ERROR(get_node()->get_logger(), "'Pose Interface' for joint %s parameter was empty", joint_.c_str());
+          RCLCPP_ERROR(get_node()->get_logger(), "'velocity Interface' for joint %s parameter was empty", joint_.c_str());
           return controller_interface::CallbackReturn::ERROR;
         };
 
@@ -155,6 +155,22 @@ namespace uvms_controller
           state_interface_types_.push_back(interface_string);
           uvms_agent.velSubscriber.push_back(state_index);
           RCLCPP_INFO(get_node()->get_logger(), "uvms_velocity_topic_interface Registered [%d] --> %s", state_index++, interface_string.c_str());
+        }
+
+        // ##############################################################################################################################
+        if (params_.joints_map.at(joint_).acceleration_topic_interface.empty())
+        {
+          RCLCPP_ERROR(get_node()->get_logger(), "'acceleration Interface' for joint %s parameter was empty", joint_.c_str());
+          return controller_interface::CallbackReturn::ERROR;
+        };
+
+        std::vector<std::string> uvms_acclereration_topic_interface_ = params_.joints_map.at(joint_).acceleration_topic_interface;
+        for (const auto &acc_interface_ : uvms_acclereration_topic_interface_)
+        {
+          std::string interface_string = std::string(uvms_joint_name_) + "/" + std::string(acc_interface_);
+          state_interface_types_.push_back(interface_string);
+          uvms_agent.accSubscriber.push_back(state_index);
+          RCLCPP_INFO(get_node()->get_logger(), "uvms_accelertation_topic_interface Registered [%d] --> %s", state_index++, interface_string.c_str());
         }
 
         // ##############################################################################################################################
@@ -193,7 +209,24 @@ namespace uvms_controller
         }
 
         // ##############################################################################################################################
-        // effort command interfaces
+        // acceleration command interfaces
+        if (params_.joints_map.at(joint_).acceleration_command_interface.empty())
+        {
+          RCLCPP_ERROR(get_node()->get_logger(), "'acceleration_command_interface' for joint %s parameter was empty", joint_.c_str());
+          return controller_interface::CallbackReturn::ERROR;
+        };
+
+        std::vector<std::string> uvms_acceleration_command_interface_ = params_.joints_map.at(joint_).acceleration_command_interface;
+        for (const auto &acceleration_command_interface_ : uvms_acceleration_command_interface_)
+        {
+          std::string interface_string = std::string(uvms_joint_name_) + "/" + std::string(acceleration_command_interface_);
+          command_interface_types_.push_back(interface_string);
+          uvms_agent.velCommander.push_back(command_index);
+          RCLCPP_INFO(get_node()->get_logger(), "uvms_acceleration_command_interface_ Registered [%d] --> %s", command_index++, interface_string.c_str());
+        }
+
+        // ##############################################################################################################################
+         // effort command interfaces
         if (params_.joints_map.at(joint_).effort_command_interface.empty())
         {
           RCLCPP_ERROR(get_node()->get_logger(), "'effort_command_interface' for joint %s parameter was empty", joint_.c_str());

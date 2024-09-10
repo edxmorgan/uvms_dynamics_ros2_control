@@ -67,6 +67,11 @@ uvms_controller:
         unique<>: []
         size_lt<>: [7]
 
+    acceleration_topic_interface:
+      type: string_array
+      description: "subscribe_ acceleration map parameter with struct name"
+      read_only: true
+
     pose_command_interface:
       type: string_array
       description: "publish_ position map parameter with struct name"
@@ -84,6 +89,11 @@ uvms_controller:
         not_empty<>: []
         unique<>: []
         size_lt<>: [7]
+
+    acceleration_command_interface:
+      type: string_array
+      description: "publish_ acceleration map parameter with struct name"
+      read_only: true
 
     effort_command_interface:
       type: string_array

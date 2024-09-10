@@ -47,7 +47,9 @@ namespace casadi_uvms
             std::vector<int> poseSubscriber;
             std::vector<int> poseCommander;
             std::vector<int> velSubscriber;
+            std::vector<int> accSubscriber;
             std::vector<int> velCommander;
+            std::vector<int> accCommander;
             std::vector<int> effortCommander;
             bool grabber_open;
         };
