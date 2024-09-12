@@ -25,6 +25,8 @@
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_buffer.h"
 #include "std_msgs/msg/float64_multi_array.hpp"
+#include "uvms_interfaces/msg/command.hpp"                                            // CHANGE
+
 #include <casadi/casadi.hpp>
 
 #include "uvms_controller/visibility_control.h"
@@ -34,7 +36,7 @@
 namespace uvms_controller
 {
 
-  using CmdType = std_msgs::msg::Float64MultiArray;
+  using CmdType = uvms_interfaces::msg::Command;
 
   class UvmsControllerBase : public controller_interface::ControllerInterface
   {

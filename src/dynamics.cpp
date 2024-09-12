@@ -23,6 +23,18 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.manipulator_forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFKeval.so");
 };
 
+void casadi_uvms::Dynamics::forward_Kin(int &agent_id)
+{
+    std::vector<casadi::DM> arm_position_(uvms_world[agent_id].next_position.end() - 4,
+                                          uvms_world[agent_id].next_position.end());
+    joint_q_arg = {arm_position_};
+
+    forward_pose = fun_service.manipulator_forward_kinematics(joint_q_arg);
+
+    uvms_world[agent_id].pose_rot = forward_pose.at(0).nonzeros();
+    uvms_world[agent_id].pose_trl = forward_pose.at(1).nonzeros();
+};
+
 void casadi_uvms::Dynamics::coupled_simulate(int &agent_id) {
 
 };
@@ -58,7 +70,7 @@ void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
     std::vector<casadi::DM> vehicle_forces_(uvms_world[agent_id].force_input.begin(),
                                             uvms_world[agent_id].force_input.begin() + 6);
 
-    vehicle_simulate_argument = {vehicle_state , vehicle_forces_, dt, uvms_world[agent_id].flow_velocity};
+    vehicle_simulate_argument = {vehicle_state, vehicle_forces_, dt, uvms_world[agent_id].flow_velocity};
 
     arm_sim = fun_service.decoupled_manipulator_uvms_dynamics(arm_simulate_argument);
     vehicle_sim = fun_service.decoupled_vehicle_uvms_dynamics(vehicle_simulate_argument);
@@ -87,4 +99,9 @@ void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
     uvms_world[agent_id].next_velocity[7] = arm_sim.at(0).nonzeros()[5];
     uvms_world[agent_id].next_velocity[8] = arm_sim.at(0).nonzeros()[6];
     uvms_world[agent_id].next_velocity[9] = arm_sim.at(0).nonzeros()[7];
+
+    uvms_world[agent_id].force_input[6] = arm_sim.at(1).nonzeros()[0];
+    uvms_world[agent_id].force_input[7] = arm_sim.at(1).nonzeros()[1];
+    uvms_world[agent_id].force_input[8] = arm_sim.at(1).nonzeros()[2];
+    uvms_world[agent_id].force_input[9] = arm_sim.at(1).nonzeros()[3];
 };

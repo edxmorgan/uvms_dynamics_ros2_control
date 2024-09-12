@@ -139,17 +139,16 @@ namespace uvms_controller
           "uvms commands not received");
 
       auto default_command = std::make_shared<CmdType>();
-      default_command->data.resize(total_command_size, 0.0);
+      default_command->input.data.resize(total_command_size, 0.0);
       *uvms_commands = default_command;
-    }
-
+    };
     // Validate command size
-    if ((*uvms_commands)->data.size() != total_command_size)
+    if ((*uvms_commands)->input.data.size() != total_command_size)
     {
       RCLCPP_ERROR_THROTTLE(
           get_node()->get_logger(), *(get_node()->get_clock()), 1000,
           "Reference command size (%zu) does not match number of command interfaces (%zu)",
-          (*uvms_commands)->data.size(), total_command_size);
+          (*uvms_commands)->input.data.size(), total_command_size);
 
       return controller_interface::return_type::ERROR;
     }
@@ -162,13 +161,16 @@ namespace uvms_controller
       uvms.current_velocity = get_state_values(uvms.velSubscriber, 10);
 
       // Copy force input from commands
-      uvms.force_input.assign((*uvms_commands)->data.begin(), (*uvms_commands)->data.begin() + 10);
+      uvms.force_input.assign((*uvms_commands)->input.data.begin(), (*uvms_commands)->input.data.begin() + 10);
 
       // Initialize fixed parameters
       uvms.flow_velocity.assign(6, 0.0);
-      uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3, 2, 1.8, 0.3, 3, 2, 1.8, 0.3};
+      uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3.0, 2.3, 2.2, 0.3, 3.0, 1.8, 1.0, 1.15};
 
       model_dynamics.decoupled_simulate(uvms.id);
+      // model_dynamics.forward_Kin(uvms.id);
+
+      // RCLCPP_INFO(get_node()->get_logger(), "pose translation : %f , %f, %f", uvms.pose_trl[0], uvms.pose_trl[1], uvms.pose_trl[2]);
 
       set_command_values(uvms.poseCommander, uvms.next_position, 11);
       set_command_values(uvms.velCommander, uvms.next_velocity, 10);

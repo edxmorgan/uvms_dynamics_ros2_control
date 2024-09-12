@@ -29,13 +29,17 @@ namespace casadi_uvms
         casadi_uvms::FunctionLoader fun_service;
         std::vector<DM> arm_simulate_argument;
         std::vector<DM> arm_sim;
+        std::vector<DM> forward_pose;
         std::vector<DM> vehicle_simulate_argument;
         std::vector<DM> vehicle_sim;
+        std::vector<DM> joint_q_arg;
 
     public:
         struct Model
         {
             int id;
+            std::vector<double> pose_rot;
+            std::vector<double> pose_trl;
             std::vector<double> current_position = std::vector<double>(11);
             std::vector<double> next_position = std::vector<double>(11);
             std::vector<double> current_velocity = std::vector<double>(10);
@@ -67,6 +71,8 @@ namespace casadi_uvms
         void coupled_simulate(int &agent_id);
 
         void decoupled_simulate(int &agent_id);
+
+        void forward_Kin(int &agent_id);
     };
 } // namespace casadi_uvms
 
