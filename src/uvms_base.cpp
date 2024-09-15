@@ -33,7 +33,8 @@ namespace uvms_controller
   UvmsControllerBase::UvmsControllerBase()
       : controller_interface::ControllerInterface(),
         rt_command_ptr_(nullptr),
-        uvms_command_subscriber_(nullptr)
+        uvms_command_subscriber_(nullptr),
+        last_command_type_("") // Initialize the last command type
   {
   }
 
@@ -132,25 +133,12 @@ namespace uvms_controller
   {
     auto uvms_commands = rt_command_ptr_.readFromRT();
 
-    if (!uvms_commands || !(*uvms_commands))
-    {
-      RCLCPP_ERROR_THROTTLE(
-          get_node()->get_logger(), *(get_node()->get_clock()), 1000,
-          "uvms commands not received");
+    controller_interface::return_type result = validate_uvms_commands(
+        (*uvms_commands), total_command_size, get_node()->get_logger(), get_node()->get_clock());
 
-      auto default_command = std::make_shared<CmdType>();
-      default_command->input.data.resize(total_command_size, 0.0);
-      *uvms_commands = default_command;
-    };
-    // Validate command size
-    if ((*uvms_commands)->input.data.size() != total_command_size)
+    if (result == controller_interface::return_type::ERROR)
     {
-      RCLCPP_ERROR_THROTTLE(
-          get_node()->get_logger(), *(get_node()->get_clock()), 1000,
-          "Reference command size (%zu) does not match number of command interfaces (%zu)",
-          (*uvms_commands)->input.data.size(), total_command_size);
-
-      return controller_interface::return_type::ERROR;
+      return result;
     }
 
     model_dynamics.dt = period.seconds();
@@ -199,4 +187,68 @@ namespace uvms_controller
     }
   }
 
+  controller_interface::return_type UvmsControllerBase::validate_uvms_commands(
+      std::shared_ptr<CmdType> &uvms_commands,
+      size_t expected_command_size,
+      const rclcpp::Logger &logger,
+      const rclcpp::Clock::SharedPtr &clock)
+  {
+    // Use logger and clock directly
+    if (!uvms_commands)
+    {
+      RCLCPP_ERROR_THROTTLE(
+          logger, *clock, 1000,
+          "uvms commands not received");
+
+      // Create a default command
+      auto default_command = std::make_shared<CmdType>();
+      default_command->input.data.resize(expected_command_size, 0.0);
+      default_command->command_type = "force";
+      uvms_commands = default_command;
+    }
+
+    // Ensure the command type is valid
+    if (uvms_commands->command_type != "position" &&
+        uvms_commands->command_type != "velocity" &&
+        uvms_commands->command_type != "force")
+    {
+      last_command_type_ = "";
+      RCLCPP_ERROR_THROTTLE(
+          logger, *clock, 1000,
+          "Unsupported command type: '%s'",
+          uvms_commands->command_type.c_str());
+      return controller_interface::return_type::ERROR;
+    }
+
+    // Log the command type every time it changes using RCLCPP_INFO_FUNCTION
+    if (uvms_commands->command_type != last_command_type_)
+    {
+      RCLCPP_INFO(
+          logger,
+          "Received command type: '%s'",
+          uvms_commands->command_type.c_str());
+      last_command_type_ = uvms_commands->command_type;
+    }
+
+    // Validate the command input size
+    // size_t required_command_size = expected_command_size;
+    if (uvms_commands->command_type == "position")
+    {
+      expected_command_size += 1;
+    }
+
+    if (uvms_commands->input.data.size() != expected_command_size)
+    {
+      RCLCPP_ERROR_THROTTLE(
+          logger, *clock, 1000,
+          "Command type '%s' expects %zu elements, but received %zu",
+          uvms_commands->command_type.c_str(),
+          expected_command_size,
+          uvms_commands->input.data.size());
+
+      return controller_interface::return_type::ERROR;
+    }
+
+    return controller_interface::return_type::OK;
+  }
 } // namespace uvms_controller
