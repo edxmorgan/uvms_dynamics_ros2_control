@@ -111,6 +111,16 @@ namespace uvms_controller
         const rclcpp::Logger &logger,
         const rclcpp::Clock::SharedPtr &clock);
 
+    controller_interface::return_type position_controller(
+        std::shared_ptr<CmdType> &uvms_commands,
+        const rclcpp::Logger &logger,
+        const rclcpp::Clock::SharedPtr &clock);
+
+    controller_interface::return_type velocity_controller(
+        std::shared_ptr<CmdType> &uvms_commands,
+        const rclcpp::Logger &logger,
+        const rclcpp::Clock::SharedPtr &clock);
+
     realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
     rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
 

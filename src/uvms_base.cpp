@@ -133,13 +133,30 @@ namespace uvms_controller
   {
     auto uvms_commands = rt_command_ptr_.readFromRT();
 
-    controller_interface::return_type result = validate_uvms_commands(
-        (*uvms_commands), total_command_size, get_node()->get_logger(), get_node()->get_clock());
+    controller_interface::return_type result = validate_uvms_commands((*uvms_commands), total_command_size, get_node()->get_logger(), get_node()->get_clock());
 
     if (result == controller_interface::return_type::ERROR)
     {
       return result;
-    }
+    };
+
+    if ((*uvms_commands)->command_type == "velocity")
+    {
+      result = velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock());
+    };
+    if (result == controller_interface::return_type::ERROR)
+    {
+      return result;
+    };
+
+    if ((*uvms_commands)->command_type == "position")
+    {
+      result = position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock());
+    };
+    if (result == controller_interface::return_type::ERROR)
+    {
+      return result;
+    };
 
     model_dynamics.dt = period.seconds();
 
@@ -231,7 +248,6 @@ namespace uvms_controller
     }
 
     // Validate the command input size
-    // size_t required_command_size = expected_command_size;
     if (uvms_commands->command_type == "position")
     {
       expected_command_size += 1;
@@ -250,5 +266,29 @@ namespace uvms_controller
     }
 
     return controller_interface::return_type::OK;
-  }
+  };
+
+  controller_interface::return_type UvmsControllerBase::velocity_controller(
+      std::shared_ptr<CmdType> &uvms_commands,
+      const rclcpp::Logger &logger,
+      const rclcpp::Clock::SharedPtr &clock)
+  {
+    auto computed_command = std::make_shared<CmdType>();
+    computed_command->input.data.resize(10, 0.0);
+    computed_command->command_type = "velocity";
+    uvms_commands = computed_command;
+    return controller_interface::return_type::OK;
+  };
+
+  controller_interface::return_type UvmsControllerBase::position_controller(
+      std::shared_ptr<CmdType> &uvms_commands,
+      const rclcpp::Logger &logger,
+      const rclcpp::Clock::SharedPtr &clock)
+  {
+    auto computed_command = std::make_shared<CmdType>();
+    computed_command->input.data.resize(10, 0.0);
+    computed_command->command_type = "position";
+    uvms_commands = computed_command;
+    return controller_interface::return_type::OK;
+  };
 } // namespace uvms_controller
