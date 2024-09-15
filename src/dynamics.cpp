@@ -56,8 +56,10 @@ void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
                              uvms_world[agent_id].model_p,
                              dt};
 
+    // Original code: constructing the vector with 7 elements
     std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
                                           uvms_world[agent_id].current_position.begin() + 7);
+    vehicle_pose_[2] = -vehicle_pose_[2]; // to NED coordinate
 
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
