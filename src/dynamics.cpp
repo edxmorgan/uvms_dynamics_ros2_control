@@ -21,18 +21,65 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.decoupled_manipulator_uvms_dynamics = fun_service.load_casadi_fun("Mnext", "libMnext.so");
     fun_service.decoupled_vehicle_uvms_dynamics = fun_service.load_casadi_fun("Vnext", "libVnext.so");
     fun_service.manipulator_forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFKeval.so");
+    fun_service.vehicle_position_pid = fun_service.load_casadi_fun("pidC", "libPd.so");
+    // fun_service.vehicle_velocity_pid = fun_service.load_casadi_fun("pidC", "libPd.so");
 };
 
-void casadi_uvms::Dynamics::forward_Kin(int &agent_id)
+controller_interface::return_type casadi_uvms::Dynamics::position_controller(
+    std::shared_ptr<CmdType> &uvms_commands,
+    const rclcpp::Logger &logger,
+    const rclcpp::Clock::SharedPtr &clock,
+    int &agent_id)
 {
-    std::vector<casadi::DM> arm_position_(uvms_world[agent_id].next_position.end() - 4,
-                                          uvms_world[agent_id].next_position.end());
-    joint_q_arg = {arm_position_};
 
-    forward_pose = fun_service.manipulator_forward_kinematics(joint_q_arg);
+    std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
+                                          uvms_world[agent_id].current_position.begin() + 7);
+    vehicle_pose_[2] = -vehicle_pose_[2]; // to NED coordinate
 
-    uvms_world[agent_id].pose_rot = forward_pose.at(0).nonzeros();
-    uvms_world[agent_id].pose_trl = forward_pose.at(1).nonzeros();
+    std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
+                                         uvms_world[agent_id].current_velocity.begin() + 6);
+
+    std::vector<casadi::DM> vehicle_state;
+    vehicle_state.reserve(13);
+    vehicle_state.insert(vehicle_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    vehicle_state.insert(vehicle_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
+
+    std::vector<casadi::DM> Kp = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+    std::vector<casadi::DM> Ki = {0, 0, 0, 0, 0, 1};
+    std::vector<casadi::DM> Kd = {1, 1, 1, 1, 1, 1};
+    std::vector<casadi::DM> sum_e_buffer = {0, 0, 0, 0, 0, 0};
+    std::vector<double> XF;
+    XF.assign(uvms_commands->input.data.begin(), uvms_commands->input.data.begin() + 6);
+
+    vehicle_pose_pid_argument = {Kp, Ki, Kd, sum_e_buffer, dt, vehicle_state, XF};
+    vehicle_pose_command = fun_service.vehicle_position_pid(vehicle_pose_pid_argument);
+
+    // auto computed_command = std::make_shared<CmdType>();
+    // computed_command->input.data.resize(10, 0.0); // Ensure the vector has size 10
+    // std::copy_n(
+    //     vehicle_pose_command.at(0).nonzeros().begin(),
+    //     6,
+    //     computed_command->input.data.begin());
+
+    // computed_command->command_type = "position";
+    // uvms_commands = computed_command;
+    return controller_interface::return_type::OK;
+};
+
+controller_interface::return_type casadi_uvms::Dynamics::velocity_controller(
+    std::shared_ptr<CmdType> &uvms_commands,
+    const rclcpp::Logger &logger,
+    const rclcpp::Clock::SharedPtr &clock,
+    int &agent_id)
+{
+
+    // uvms_commands->input.data
+    //     model_dynamics.vehicle_vel_pid(agent_id);
+    // auto computed_command = std::make_shared<CmdType>();
+    // computed_command->input.data.resize(10, 0.0);
+    // computed_command->command_type = "velocity";
+    // uvms_commands = computed_command;
+    return controller_interface::return_type::OK;
 };
 
 void casadi_uvms::Dynamics::coupled_simulate(int &agent_id) {

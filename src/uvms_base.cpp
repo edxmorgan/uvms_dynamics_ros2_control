@@ -72,9 +72,9 @@ namespace uvms_controller
     // Resize to number of simulation worlds
     total_command_size = n * force_input_size;
 
-    uvms_command_subscriber_ = get_node()->create_subscription<CmdType>(
+    uvms_command_subscriber_ = get_node()->create_subscription<casadi_uvms::CmdType>(
         "~/uvms/commands", rclcpp::SystemDefaultsQoS(),
-        [this](const CmdType::SharedPtr msg)
+        [this](const casadi_uvms::CmdType::SharedPtr msg)
         { rt_command_ptr_.writeFromNonRT(msg); });
 
     RCLCPP_INFO(get_node()->get_logger(), "configure successful");
@@ -124,7 +124,7 @@ namespace uvms_controller
       const rclcpp_lifecycle::State & /*previous_state*/)
   {
     // reset command buffer
-    rt_command_ptr_ = realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>>(nullptr);
+    rt_command_ptr_ = realtime_tools::RealtimeBuffer<std::shared_ptr<casadi_uvms::CmdType>>(nullptr);
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -140,30 +140,30 @@ namespace uvms_controller
       return result;
     };
 
-    if ((*uvms_commands)->command_type == "velocity")
-    {
-      result = velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock());
-    };
-    if (result == controller_interface::return_type::ERROR)
-    {
-      return result;
-    };
-
-    if ((*uvms_commands)->command_type == "position")
-    {
-      result = position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock());
-    };
-    if (result == controller_interface::return_type::ERROR)
-    {
-      return result;
-    };
-
     model_dynamics.dt = period.seconds();
 
     for (auto &uvms : model_dynamics.uvms_world)
     {
       uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
       uvms.current_velocity = get_state_values(uvms.velSubscriber, 10);
+
+      if ((*uvms_commands)->command_type == "velocity")
+      {
+        result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      };
+      if (result == controller_interface::return_type::ERROR)
+      {
+        return result;
+      };
+
+      if ((*uvms_commands)->command_type == "position")
+      {
+        result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      };
+      if (result == controller_interface::return_type::ERROR)
+      {
+        return result;
+      };
 
       // Copy force input from commands
       uvms.force_input.assign((*uvms_commands)->input.data.begin(), (*uvms_commands)->input.data.begin() + 10);
@@ -173,9 +173,6 @@ namespace uvms_controller
       uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3.0, 2.3, 2.2, 0.3, 3.0, 1.8, 1.0, 1.15};
 
       model_dynamics.decoupled_simulate(uvms.id);
-      // model_dynamics.forward_Kin(uvms.id);
-
-      // RCLCPP_INFO(get_node()->get_logger(), "pose translation : %f , %f, %f", uvms.pose_trl[0], uvms.pose_trl[1], uvms.pose_trl[2]);
 
       set_command_values(uvms.poseCommander, uvms.next_position, 11);
       set_command_values(uvms.velCommander, uvms.next_velocity, 10);
@@ -205,7 +202,7 @@ namespace uvms_controller
   }
 
   controller_interface::return_type UvmsControllerBase::validate_uvms_commands(
-      std::shared_ptr<CmdType> &uvms_commands,
+      std::shared_ptr<casadi_uvms::CmdType> &uvms_commands,
       size_t expected_command_size,
       const rclcpp::Logger &logger,
       const rclcpp::Clock::SharedPtr &clock)
@@ -218,7 +215,7 @@ namespace uvms_controller
           "uvms commands not received");
 
       // Create a default command
-      auto default_command = std::make_shared<CmdType>();
+      auto default_command = std::make_shared<casadi_uvms::CmdType>();
       default_command->input.data.resize(expected_command_size, 0.0);
       default_command->command_type = "force";
       uvms_commands = default_command;
@@ -247,12 +244,6 @@ namespace uvms_controller
       last_command_type_ = uvms_commands->command_type;
     }
 
-    // Validate the command input size
-    if (uvms_commands->command_type == "position")
-    {
-      expected_command_size += 1;
-    }
-
     if (uvms_commands->input.data.size() != expected_command_size)
     {
       RCLCPP_ERROR_THROTTLE(
@@ -265,30 +256,6 @@ namespace uvms_controller
       return controller_interface::return_type::ERROR;
     }
 
-    return controller_interface::return_type::OK;
-  };
-
-  controller_interface::return_type UvmsControllerBase::velocity_controller(
-      std::shared_ptr<CmdType> &uvms_commands,
-      const rclcpp::Logger &logger,
-      const rclcpp::Clock::SharedPtr &clock)
-  {
-    auto computed_command = std::make_shared<CmdType>();
-    computed_command->input.data.resize(10, 0.0);
-    computed_command->command_type = "velocity";
-    uvms_commands = computed_command;
-    return controller_interface::return_type::OK;
-  };
-
-  controller_interface::return_type UvmsControllerBase::position_controller(
-      std::shared_ptr<CmdType> &uvms_commands,
-      const rclcpp::Logger &logger,
-      const rclcpp::Clock::SharedPtr &clock)
-  {
-    auto computed_command = std::make_shared<CmdType>();
-    computed_command->input.data.resize(10, 0.0);
-    computed_command->command_type = "position";
-    uvms_commands = computed_command;
     return controller_interface::return_type::OK;
   };
 } // namespace uvms_controller

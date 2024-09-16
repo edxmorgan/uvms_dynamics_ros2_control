@@ -19,9 +19,12 @@
 #include <algorithm>
 #include <casadi/casadi.hpp>
 #include "uvms_controller/so_loader.hpp"
+#include "controller_interface/controller_interface.hpp"
+#include "uvms_interfaces/msg/command.hpp"
 
 namespace casadi_uvms
 {
+    using CmdType = uvms_interfaces::msg::Command;
     class Dynamics
     {
     private:
@@ -33,6 +36,8 @@ namespace casadi_uvms
         std::vector<DM> vehicle_simulate_argument;
         std::vector<DM> vehicle_sim;
         std::vector<DM> joint_q_arg;
+        std::vector<DM> vehicle_pose_pid_argument;
+        std::vector<DM> vehicle_pose_command;
 
     public:
         struct Model
@@ -71,8 +76,16 @@ namespace casadi_uvms
         void coupled_simulate(int &agent_id);
 
         void decoupled_simulate(int &agent_id);
-
-        void forward_Kin(int &agent_id);
+        controller_interface::return_type position_controller(
+            std::shared_ptr<CmdType> &uvms_commands,
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id);
+        controller_interface::return_type velocity_controller(
+            std::shared_ptr<CmdType> &uvms_commands,
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id);
     };
 } // namespace casadi_uvms
 

@@ -25,7 +25,6 @@
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_buffer.h"
 #include "std_msgs/msg/float64_multi_array.hpp"
-#include "uvms_interfaces/msg/command.hpp" // CHANGE
 
 #include <casadi/casadi.hpp>
 
@@ -35,8 +34,6 @@
 
 namespace uvms_controller
 {
-
-  using CmdType = uvms_interfaces::msg::Command;
 
   class UvmsControllerBase : public controller_interface::ControllerInterface
   {
@@ -106,23 +103,25 @@ namespace uvms_controller
     std::vector<double> get_state_values(const std::vector<int> &indices, std::size_t count);
     void set_command_values(const std::vector<int> &indices, const std::vector<double> &values, std::size_t count);
     controller_interface::return_type validate_uvms_commands(
-        std::shared_ptr<CmdType> &uvms_commands,
+        std::shared_ptr<casadi_uvms::CmdType> &uvms_commands,
         size_t expected_command_size,
         const rclcpp::Logger &logger,
         const rclcpp::Clock::SharedPtr &clock);
 
     controller_interface::return_type position_controller(
-        std::shared_ptr<CmdType> &uvms_commands,
+        std::shared_ptr<casadi_uvms::CmdType> &uvms_commands,
         const rclcpp::Logger &logger,
-        const rclcpp::Clock::SharedPtr &clock);
+        const rclcpp::Clock::SharedPtr &clock,
+        int &agent_id);
 
     controller_interface::return_type velocity_controller(
-        std::shared_ptr<CmdType> &uvms_commands,
+        std::shared_ptr<casadi_uvms::CmdType> &uvms_commands,
         const rclcpp::Logger &logger,
-        const rclcpp::Clock::SharedPtr &clock);
+        const rclcpp::Clock::SharedPtr &clock,
+        int &agent_id);
 
-    realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
-    rclcpp::Subscription<CmdType>::SharedPtr uvms_command_subscriber_;
+    realtime_tools::RealtimeBuffer<std::shared_ptr<casadi_uvms::CmdType>> rt_command_ptr_;
+    rclcpp::Subscription<casadi_uvms::CmdType>::SharedPtr uvms_command_subscriber_;
 
     // private attributes
     size_t force_input_size = casadi_uvms::Dynamics::Model().force_input.size();
