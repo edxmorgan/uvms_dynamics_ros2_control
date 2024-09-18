@@ -33,8 +33,7 @@ namespace uvms_controller
   UvmsControllerBase::UvmsControllerBase()
       : controller_interface::ControllerInterface(),
         rt_command_ptr_(nullptr),
-        uvms_command_subscriber_(nullptr),
-        last_command_type_("") // Initialize the last command type
+        uvms_command_subscriber_(nullptr)
   {
   }
 
@@ -147,9 +146,18 @@ namespace uvms_controller
       uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
       uvms.current_velocity = get_state_values(uvms.velSubscriber, 10);
 
-      if ((*uvms_commands)->command_type == "velocity")
+      // if ((*uvms_commands)->command_type == "velocity")
+      // {
+      //   result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      // };
+      // if (result == controller_interface::return_type::ERROR)
+      // {
+      //   return result;
+      // };
+
+      if ((*uvms_commands)->command_type == "force")
       {
-        result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+        result = model_dynamics.force_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
       };
       if (result == controller_interface::return_type::ERROR)
       {
@@ -159,14 +167,13 @@ namespace uvms_controller
       if ((*uvms_commands)->command_type == "position")
       {
         result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      //   // RCLCPP_INFO(
+      //   //     get_node()->get_logger(), "pOSITION REVCIEVED FOR PID ---->> force ");
+      //   // };
+      //   // if (result == controller_interface::return_type::ERROR)
+      //   // {
+      //   //   return result;
       };
-      if (result == controller_interface::return_type::ERROR)
-      {
-        return result;
-      };
-
-      // Copy force input from commands
-      uvms.force_input.assign((*uvms_commands)->input.data.begin(), (*uvms_commands)->input.data.begin() + 10);
 
       // Initialize fixed parameters
       uvms.flow_velocity.assign(6, 0.0);

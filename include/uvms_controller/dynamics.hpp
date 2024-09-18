@@ -60,12 +60,13 @@ namespace casadi_uvms
             std::vector<int> velCommander;
             std::vector<int> accCommander;
             std::vector<int> effortCommander;
+            std::vector<double> sum_ki_buffer = std::vector<double>(6,0);
             bool grabber_open;
         };
 
         std::vector<Model> uvms_world{}; // vector for future enhancement
 
-        DM dt;
+        double dt;
         Dynamics()
         {
             init_dynamics(); // Automatically call init_dynamics upon instantiation
@@ -82,6 +83,11 @@ namespace casadi_uvms
             const rclcpp::Clock::SharedPtr &clock,
             int &agent_id);
         controller_interface::return_type velocity_controller(
+            std::shared_ptr<CmdType> &uvms_commands,
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id);
+        controller_interface::return_type force_controller(
             std::shared_ptr<CmdType> &uvms_commands,
             const rclcpp::Logger &logger,
             const rclcpp::Clock::SharedPtr &clock,

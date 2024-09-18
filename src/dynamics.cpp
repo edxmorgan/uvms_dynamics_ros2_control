@@ -31,38 +31,38 @@ controller_interface::return_type casadi_uvms::Dynamics::position_controller(
     const rclcpp::Clock::SharedPtr &clock,
     int &agent_id)
 {
-
-    std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
+    std::vector<double> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
                                           uvms_world[agent_id].current_position.begin() + 7);
-    vehicle_pose_[2] = -vehicle_pose_[2]; // to NED coordinate
 
-    std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
+    std::vector<double> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-    std::vector<casadi::DM> vehicle_state;
+    std::vector<double> vehicle_state;
     vehicle_state.reserve(13);
     vehicle_state.insert(vehicle_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
     vehicle_state.insert(vehicle_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
 
-    std::vector<casadi::DM> Kp = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-    std::vector<casadi::DM> Ki = {0, 0, 0, 0, 0, 1};
-    std::vector<casadi::DM> Kd = {1, 1, 1, 1, 1, 1};
-    std::vector<casadi::DM> sum_e_buffer = {0, 0, 0, 0, 0, 0};
+    std::vector<double> Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+    std::vector<double> Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    std::vector<double> Kd = {2, 2, 2, 2, 2, 2};
     std::vector<double> XF;
     XF.assign(uvms_commands->input.data.begin(), uvms_commands->input.data.begin() + 6);
-
-    vehicle_pose_pid_argument = {Kp, Ki, Kd, sum_e_buffer, dt, vehicle_state, XF};
+    vehicle_pose_pid_argument = {Kp, Ki, Kd, uvms_world[agent_id].sum_ki_buffer, dt, vehicle_state, XF};
     vehicle_pose_command = fun_service.vehicle_position_pid(vehicle_pose_pid_argument);
+    // Retrieve the non-zero elements
+    std::vector<double> pid_commands = vehicle_pose_command.at(0).nonzeros();
+    uvms_world[agent_id].sum_ki_buffer = vehicle_pose_command.at(1).nonzeros();
 
-    // auto computed_command = std::make_shared<CmdType>();
-    // computed_command->input.data.resize(10, 0.0); // Ensure the vector has size 10
-    // std::copy_n(
-    //     vehicle_pose_command.at(0).nonzeros().begin(),
-    //     6,
-    //     computed_command->input.data.begin());
-
-    // computed_command->command_type = "position";
-    // uvms_commands = computed_command;
+    // Convert the vector to a string for logging
+    std::stringstream ss_pid;
+    ss_pid << "Non-zero elements of pid commands: ";
+    for (const auto &elem : pid_commands)
+    {
+        ss_pid << elem << " ";
+    }
+    // Log the non-zero elements
+    RCLCPP_INFO(logger, "pid command %s", ss_pid.str().c_str());
+    std::copy(pid_commands.begin(), pid_commands.end(), uvms_world[agent_id].force_input.begin());
     return controller_interface::return_type::OK;
 };
 
@@ -79,6 +79,17 @@ controller_interface::return_type casadi_uvms::Dynamics::velocity_controller(
     // computed_command->input.data.resize(10, 0.0);
     // computed_command->command_type = "velocity";
     // uvms_commands = computed_command;
+    return controller_interface::return_type::OK;
+};
+
+controller_interface::return_type casadi_uvms::Dynamics::force_controller(
+    std::shared_ptr<CmdType> &uvms_commands,
+    const rclcpp::Logger &logger,
+    const rclcpp::Clock::SharedPtr &clock,
+    int &agent_id)
+{
+    // Copy force input from commands
+    uvms_world[agent_id].force_input.assign(uvms_commands->input.data.begin(), uvms_commands->input.data.begin() + 10);
     return controller_interface::return_type::OK;
 };
 
@@ -106,7 +117,6 @@ void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
     // Original code: constructing the vector with 7 elements
     std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
                                           uvms_world[agent_id].current_position.begin() + 7);
-    vehicle_pose_[2] = -vehicle_pose_[2]; // to NED coordinate
 
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
