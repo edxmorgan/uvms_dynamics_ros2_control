@@ -38,6 +38,8 @@ namespace casadi_uvms
         std::vector<DM> joint_q_arg;
         std::vector<DM> vehicle_pose_pid_argument;
         std::vector<DM> vehicle_pose_command;
+        std::vector<DM> vehicle_vel_pid_argument;
+        std::vector<DM> vehicle_vel_command;
 
     public:
         struct Model
@@ -46,12 +48,14 @@ namespace casadi_uvms
             std::vector<double> pose_rot;
             std::vector<double> pose_trl;
             std::vector<double> current_position = std::vector<double>(11);
+            std::vector<double> prev_position = std::vector<double>(11);
             std::vector<double> next_position = std::vector<double>(11);
-            std::vector<double> current_velocity = std::vector<double>(10);
-            std::vector<double> next_velocity = std::vector<double>(10);
-            std::vector<double> force_input = std::vector<double>(10);
+            std::vector<double> current_velocity = std::vector<double>(10,0);
+            std::vector<double> prev_velocity = std::vector<double>(10,0);
+            std::vector<double> next_velocity = std::vector<double>(10,0);
+            std::vector<double> force_input = std::vector<double>(10,0);
             std::vector<double> model_p = std::vector<double>(12);
-            std::vector<double> flow_velocity = std::vector<double>(6);
+            std::vector<double> flow_velocity = std::vector<double>(6,0);
             std::vector<double> uvms_base_TF_;
             std::vector<int> poseSubscriber;
             std::vector<int> poseCommander;
@@ -61,6 +65,12 @@ namespace casadi_uvms
             std::vector<int> accCommander;
             std::vector<int> effortCommander;
             std::vector<double> sum_ki_buffer = std::vector<double>(6,0);
+            std::vector<double> XF;
+            std::vector<double> VF;
+            std::vector<double> Kp;
+            std::vector<double> Ki;
+            std::vector<double> Kd;
+            std::vector<double> pid_commands  = std::vector<double>(6,0);
             bool grabber_open;
         };
 

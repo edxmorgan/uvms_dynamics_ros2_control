@@ -143,17 +143,11 @@ namespace uvms_controller
 
     for (auto &uvms : model_dynamics.uvms_world)
     {
+      uvms.prev_position = uvms.current_position;
+      uvms.prev_velocity = uvms.current_velocity;
+
       uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
       uvms.current_velocity = get_state_values(uvms.velSubscriber, 10);
-
-      // if ((*uvms_commands)->command_type == "velocity")
-      // {
-      //   result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      // };
-      // if (result == controller_interface::return_type::ERROR)
-      // {
-      //   return result;
-      // };
 
       if ((*uvms_commands)->command_type == "force")
       {
@@ -164,15 +158,22 @@ namespace uvms_controller
         return result;
       };
 
+      if ((*uvms_commands)->command_type == "velocity")
+      {
+        result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      };
+      if (result == controller_interface::return_type::ERROR)
+      {
+        return result;
+      };
+
       if ((*uvms_commands)->command_type == "position")
       {
         result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      //   // RCLCPP_INFO(
-      //   //     get_node()->get_logger(), "pOSITION REVCIEVED FOR PID ---->> force ");
-      //   // };
-      //   // if (result == controller_interface::return_type::ERROR)
-      //   // {
-      //   //   return result;
+      };
+      if (result == controller_interface::return_type::ERROR)
+      {
+        return result;
       };
 
       // Initialize fixed parameters
