@@ -101,5 +101,6 @@ colcon build
 
 ### Send command
 ```bash
-ros2 topic pub /uvms_controller/uvms/commands std_msgs/msg/Float64MultiArray "{layout: {dim: [{label: 'row', size: 10, stride: 1}, {label: 'column', size: 1, stride: 10}], data_offset: 0}, data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.31]}" --once
+ros2 topic pub /uvms_controller/uvms/commands uvms_interfaces/msg/Command "{command_type: velocity ,input:{data: [0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}}" --once
 ```
+
