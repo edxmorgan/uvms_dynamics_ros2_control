@@ -18,9 +18,9 @@ uvms_controller:
       subset_of<>: [[floating_base, joint0, joint1, joint2, joint3, endeffector]]
 
   __map_agents:
-    name_space:
+    prefix:
       type: string
-      description: "maps name_space to joints"
+      description: "maps prefix to joints"
       read_only: true
       validation:
         not_empty<>: null

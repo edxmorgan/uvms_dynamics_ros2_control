@@ -80,6 +80,16 @@ namespace uvms_controller
       uvms_agent.id = idx;
 
       RCLCPP_INFO(get_node()->get_logger(), "Agent --> %s", agent_.c_str());
+////////////////////////////////////////////////
+      if (params_.agents_map.at(agent_).prefix.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'prefix' parameter was empty");
+        return controller_interface::CallbackReturn::ERROR;
+      };
+
+      std::string agent_prefix = params_.agents_map.at(agent_).prefix;
+      RCLCPP_INFO(get_node()->get_logger(), "Agent prefix --> %s", agent_prefix.c_str());
+      ////////////////////////////////////////////
 
       if (params_.agents_map.at(agent_).base_TF_translation.empty())
       {
@@ -119,8 +129,8 @@ namespace uvms_controller
 
         std::string uvms_joint_name_ = std::regex_replace(
             params_.joints_map.at(joint_).name,
-            std::regex("\\{namespace\\}"),
-            agent_.c_str());
+            std::regex("\\{prefix\\}"),
+            agent_prefix);
 
         RCLCPP_INFO(get_node()->get_logger(), "%s --> %s", joint_.c_str(), uvms_joint_name_.c_str());
 
