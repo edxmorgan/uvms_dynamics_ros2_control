@@ -45,7 +45,16 @@ controller_interface::return_type casadi_uvms::Dynamics::position_controller(
     uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
     uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     uvms_world[agent_id].Kd = {2, 2, 2, 2, 2, 2};
-    uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin(), uvms_commands->input.data.begin() + 6);
+
+    int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
+
+    // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    int start_index = agent_id * command_length_per_agent;
+    int end_index = start_index + 6;  // We are only interested in the first 6 elements (position + orientation)
+
+    // Assign the first 6 elements (position + orientation) to uvms_world[agent_id].XF
+    uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+
     vehicle_pose_pid_argument = {uvms_world[agent_id].Kp, uvms_world[agent_id].Ki, uvms_world[agent_id].Kd, uvms_world[agent_id].sum_ki_buffer, dt, vehicle_state, uvms_world[agent_id].XF};
     vehicle_pose_command = fun_service.vehicle_position_pid(vehicle_pose_pid_argument);
 
@@ -87,7 +96,16 @@ controller_interface::return_type casadi_uvms::Dynamics::velocity_controller(
     uvms_world[agent_id].Kp = {8.0, 8.0, 8.0, 8.0, 8.0, 8.0};
     uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     uvms_world[agent_id].Kd = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-    uvms_world[agent_id].VF.assign(uvms_commands->input.data.begin(), uvms_commands->input.data.begin() + 6);
+
+   int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
+
+    // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    int start_index = agent_id * command_length_per_agent;
+    int end_index = start_index + 6;  // We are only interested in the first 6 elements (position + orientation)
+
+    // Assign the first 6 elements (position + orientation) to uvms_world[agent_id].XF
+    uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+
     vehicle_vel_pid_argument = {uvms_world[agent_id].Kp,
                                 uvms_world[agent_id].Ki,
                                 uvms_world[agent_id].Kd,
@@ -110,8 +128,15 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     const rclcpp::Clock::SharedPtr &clock,
     int &agent_id)
 {
-    // Copy force input from commands
-    uvms_world[agent_id].force_input.assign(uvms_commands->input.data.begin(), uvms_commands->input.data.begin() + 10);
+
+   int command_length_per_agent = 10; // Each agent's command contains 10 elements (vehicle + manipulator)
+
+    // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    int start_index = agent_id * command_length_per_agent;
+    int end_index = start_index + 10;  
+
+    uvms_world[agent_id].force_input.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+
     return controller_interface::return_type::OK;
 };
 
