@@ -180,8 +180,8 @@ namespace uvms_controller
       uvms.flow_velocity.assign(6, 0.0);
       uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3.0, 2.3, 2.2, 0.3, 3.0, 1.8, 1.0, 1.15};
 
-      model_dynamics.coupled_simulate(uvms.id);
-      // model_dynamics.decoupled_simulate(uvms.id);
+      // model_dynamics.coupled_simulate(uvms.id);
+      model_dynamics.decoupled_simulate(uvms.id);
 
       set_command_values(uvms.poseCommander, uvms.next_position, 11);
       set_command_values(uvms.velCommander, uvms.next_velocity, 10);
