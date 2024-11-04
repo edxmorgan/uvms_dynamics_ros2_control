@@ -35,6 +35,8 @@ namespace casadi_uvms
         std::vector<DM> forward_pose;
         std::vector<DM> vehicle_simulate_argument;
         std::vector<DM> vehicle_sim;
+        std::vector<DM> uvms_simulate_argument;
+        std::vector<DM> uvms_sim;
         std::vector<DM> joint_q_arg;
         std::vector<DM> vehicle_pose_pid_argument;
         std::vector<DM> vehicle_pose_command;
