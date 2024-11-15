@@ -22,8 +22,9 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.decoupled_vehicle_uvms_dynamics = fun_service.load_casadi_fun("Vnext", "libVnext.so");
 
     fun_service.coupled_uvms_dynamics = fun_service.load_casadi_fun("UVMSnext", "libUVMS.so");
+    fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
+    fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
 
-    fun_service.manipulator_forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFKeval.so");
     fun_service.vehicle_position_pid = fun_service.load_casadi_fun("pidC", "libPd.so");
     fun_service.vehicle_velocity_pid = fun_service.load_casadi_fun("vpidC", "libVPd.so");
 };
@@ -53,7 +54,7 @@ controller_interface::return_type casadi_uvms::Dynamics::position_controller(
 
     // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
     int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + 6;  // We are only interested in the first 6 elements (position + orientation)
+    int end_index = start_index + 6; // We are only interested in the first 6 elements (position + orientation)
 
     // Assign the first 6 elements (position + orientation) to uvms_world[agent_id].XF
     uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
@@ -100,11 +101,11 @@ controller_interface::return_type casadi_uvms::Dynamics::velocity_controller(
     uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     uvms_world[agent_id].Kd = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
 
-   int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
+    int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
 
     // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
     int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + 6;  // We are only interested in the first 6 elements (position + orientation)
+    int end_index = start_index + 6; // We are only interested in the first 6 elements (position + orientation)
 
     // Assign the first 6 elements (position + orientation) to uvms_world[agent_id].XF
     uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
@@ -132,18 +133,19 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     int &agent_id)
 {
 
-   int command_length_per_agent = 10; // Each agent's command contains 10 elements (vehicle + manipulator)
+    int command_length_per_agent = 10; // Each agent's command contains 10 elements (vehicle + manipulator)
 
     // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
     int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + 10;  
+    int end_index = start_index + 10;
 
     uvms_world[agent_id].force_input.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
 
     return controller_interface::return_type::OK;
 };
 
-void casadi_uvms::Dynamics::coupled_simulate(int &agent_id) {
+void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
+{
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 4,
                                           uvms_world[agent_id].current_position.end());
 
@@ -159,61 +161,81 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id) {
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
+    casadi::DM quaternion_vector = casadi::DM::vertcat({
+        vehicle_pose_[3], vehicle_pose_[4], vehicle_pose_[5], vehicle_pose_[6]
+    });
+    // Convert quaternion to euler states
+    euler_states = fun_service.q2euler(quaternion_vector);
+
     std::vector<casadi::DM> uvms_state;
-    uvms_state.reserve(21);
-    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    uvms_state.reserve(20);
+    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.begin() + 3);
+    uvms_state.insert(uvms_state.end(), euler_states.at(0).nonzeros().begin(), euler_states.at(0).nonzeros().end());
+
     uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end());
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end());
 
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
-                                            uvms_world[agent_id].force_input.end());
+                                         uvms_world[agent_id].force_input.end());
 
-                                   
+    std::vector<casadi::DM> parameter_values = {2253.54, 2253.54, 2253.54, 340.4, 0, 0, 0, 1e-05, 0, 0, 0, 0, 0, 0, 1e-05, 0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8,
+                                            1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0, 0.032, 0.032, 0.017, 0, 0.001716, 0.001716, 0.017, 0.201, 0.201, 7e-06, 0, 7e-06, 0.032, 0.017, 0.032, 0.002443,
+                                            0.002443, 0, 0.226, 0.226, 0.017, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.26, 0.26, 0.3, 0, 0, 0, 0.3, 1.6, 1.6, 0, 0, 0,
+                                            0.26, 0.3, 0.26, 0, 0, 0, 1.8, 1.8, 0.3, 1.8e-05, 0.000203, 2.5e-05, 0.000155, -0.001, -0.002, -0.032, 0.073, 0, -0.002, 0.003, 0.001, -0.017, 0,
+                                            0.003, -0.098, 1, 0, 0, 0, 0, 0, 0, 0.05, 3.142, 0, 0, 0.14, 0, -0.12};
+
     uvms_simulate_argument = {uvms_state,
-                             uvms_forces_,
-                             dt,
-                             uvms_world[agent_id].flow_velocity,
-                             uvms_world[agent_id].model_p,
-                             uvms_world[agent_id].uvms_base_TF_  
-                             };
+                              uvms_forces_,
+                              parameter_values};
 
     // Log the uvms_simulate_argument
     std::cout << "uvms_simulate_argument:" << std::endl;
-    for (const auto& arg : uvms_simulate_argument) {
+    for (const auto &arg : uvms_simulate_argument)
+    {
         std::cout << arg << std::endl;
     }
 
     uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
+
+    next_states = uvms_sim.at(0).nonzeros();
+
     std::cout << "uvms_simulate_ response:" << std::endl;
-    for (const auto& arg : uvms_sim.at(0).nonzeros()) {
+    for (const auto &arg : next_states)
+    {
         std::cout << arg << std::endl;
     }
-    uvms_world[agent_id].next_position[0] = uvms_sim.at(0).nonzeros()[0];
-    uvms_world[agent_id].next_position[1] = uvms_sim.at(0).nonzeros()[1];
-    uvms_world[agent_id].next_position[2] = uvms_sim.at(0).nonzeros()[2];
-    uvms_world[agent_id].next_position[3] = uvms_sim.at(0).nonzeros()[3];
-    uvms_world[agent_id].next_position[4] = uvms_sim.at(0).nonzeros()[4];
-    uvms_world[agent_id].next_position[5] = uvms_sim.at(0).nonzeros()[5];
-    uvms_world[agent_id].next_position[6] = uvms_sim.at(0).nonzeros()[6];
 
-    uvms_world[agent_id].next_position[7] = uvms_sim.at(0).nonzeros()[7];
-    uvms_world[agent_id].next_position[8] = uvms_sim.at(0).nonzeros()[8];
-    uvms_world[agent_id].next_position[9] = uvms_sim.at(0).nonzeros()[9];
-    uvms_world[agent_id].next_position[10] = uvms_sim.at(0).nonzeros()[10];
+    casadi::DM euler_vector = casadi::DM::vertcat({
+        next_states[3], next_states[4], next_states[5]});
+    // Convert euler to quaternion states
+    quaternion_states = fun_service.euler2q(euler_vector);
 
+    uvms_world[agent_id].next_position[0] = next_states[0];
+    uvms_world[agent_id].next_position[1] = next_states[1];
+    uvms_world[agent_id].next_position[2] = next_states[2];
 
-    uvms_world[agent_id].next_velocity[0] = uvms_sim.at(0).nonzeros()[11];
-    uvms_world[agent_id].next_velocity[1] = uvms_sim.at(0).nonzeros()[12];
-    uvms_world[agent_id].next_velocity[2] = uvms_sim.at(0).nonzeros()[13];
-    uvms_world[agent_id].next_velocity[3] = uvms_sim.at(0).nonzeros()[14];
-    uvms_world[agent_id].next_velocity[4] = uvms_sim.at(0).nonzeros()[15];
-    uvms_world[agent_id].next_velocity[5] = uvms_sim.at(0).nonzeros()[16];
+    uvms_world[agent_id].next_position[3] = quaternion_states.at(0).nonzeros()[0];
+    uvms_world[agent_id].next_position[4] = quaternion_states.at(0).nonzeros()[1];
+    uvms_world[agent_id].next_position[5] = quaternion_states.at(0).nonzeros()[2];
+    uvms_world[agent_id].next_position[6] = quaternion_states.at(0).nonzeros()[3];
 
-    uvms_world[agent_id].next_velocity[6] = uvms_sim.at(0).nonzeros()[17];
-    uvms_world[agent_id].next_velocity[7] = uvms_sim.at(0).nonzeros()[18];
-    uvms_world[agent_id].next_velocity[8] = uvms_sim.at(0).nonzeros()[19];
-    uvms_world[agent_id].next_velocity[9] = uvms_sim.at(0).nonzeros()[20];
+    uvms_world[agent_id].next_position[7] = next_states[6];
+    uvms_world[agent_id].next_position[8] = next_states[7];
+    uvms_world[agent_id].next_position[9] = next_states[8];
+    uvms_world[agent_id].next_position[10] = next_states[9];
+
+    uvms_world[agent_id].next_velocity[0] = next_states[10];
+    uvms_world[agent_id].next_velocity[1] = next_states[11];
+    uvms_world[agent_id].next_velocity[2] = next_states[12];
+    uvms_world[agent_id].next_velocity[3] = next_states[13];
+    uvms_world[agent_id].next_velocity[4] = next_states[14];
+    uvms_world[agent_id].next_velocity[5] = next_states[15];
+
+    uvms_world[agent_id].next_velocity[6] = next_states[16];
+    uvms_world[agent_id].next_velocity[7] = next_states[17];
+    uvms_world[agent_id].next_velocity[8] = next_states[18];
+    uvms_world[agent_id].next_velocity[9] = next_states[19];
 
     // uvms_world[agent_id].force_input[6] = arm_sim.at(1).nonzeros()[0];
     // uvms_world[agent_id].force_input[7] = arm_sim.at(1).nonzeros()[1];

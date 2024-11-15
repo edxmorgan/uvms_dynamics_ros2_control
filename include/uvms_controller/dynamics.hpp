@@ -42,7 +42,9 @@ namespace casadi_uvms
         std::vector<DM> vehicle_pose_command;
         std::vector<DM> vehicle_vel_pid_argument;
         std::vector<DM> vehicle_vel_command;
-
+        std::vector<double> next_states;
+        std::vector<DM> quaternion_states;
+        std::vector<DM> euler_states;
     public:
         struct Model
         {

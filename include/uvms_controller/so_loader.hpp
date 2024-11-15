@@ -31,9 +31,10 @@ namespace casadi_uvms
         Function decoupled_manipulator_uvms_dynamics; // uvms decoupled_dynamics - manipulator
         Function decoupled_vehicle_uvms_dynamics; // uvms decoupled_dynamics - vehicle
         Function coupled_uvms_dynamics; // uvms coupled_dynamics
-        Function manipulator_forward_kinematics; //manipulator forward kinematics
         Function vehicle_position_pid; //vehicle pose pid
         Function vehicle_velocity_pid; //vehicle velocity pid
+        Function q2euler; //quaternion to euler function
+        Function euler2q; //euler 2 quaternion function
         FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);
