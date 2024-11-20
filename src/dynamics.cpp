@@ -161,9 +161,7 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-    casadi::DM quaternion_vector = casadi::DM::vertcat({
-        vehicle_pose_[3], vehicle_pose_[4], vehicle_pose_[5], vehicle_pose_[6]
-    });
+    casadi::DM quaternion_vector = casadi::DM::vertcat({vehicle_pose_[3], vehicle_pose_[4], vehicle_pose_[5], vehicle_pose_[6]});
     // Convert quaternion to euler states
     euler_states = fun_service.q2euler(quaternion_vector);
 
@@ -179,35 +177,36 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
                                          uvms_world[agent_id].force_input.end());
 
-    std::vector<casadi::DM> parameter_values = {2253.54, 2253.54, 2253.54, 340.4, 0, 0, 0, 1e-05, 0, 0, 0, 0, 0, 0, 1e-05, 0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8,
-                                            1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0, 0.032, 0.032, 0.017, 0, 0.001716, 0.001716, 0.017, 0.201, 0.201, 7e-06, 0, 7e-06, 0.032, 0.017, 0.032, 0.002443,
-                                            0.002443, 0, 0.226, 0.226, 0.017, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.26, 0.26, 0.3, 0, 0, 0, 0.3, 1.6, 1.6, 0, 0, 0,
-                                            0.26, 0.3, 0.26, 0, 0, 0, 1.8, 1.8, 0.3, 1.8e-05, 0.000203, 2.5e-05, 0.000155, -0.001, -0.002, -0.032, 0.073, 0, -0.002, 0.003, 0.001, -0.017, 0,
-                                            0.003, -0.098, 1, 0, 0, 0, 0, 0, 0, 0.05, 3.142, 0, 0, 0.14, 0, -0.12};
+    std::vector<casadi::DM> parameter_values = {2253.54, 2253.54, 2253.54, 340.4, 0, 0, 0, 1e-05, 0, 0, 0, 0, 0, 0, 1e-05,
+                                                     0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8, 1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0,
+                                                     0.032, 0.032, 0.017, 0, 0.001716, 0.001716, 0.017, 0.201, 0.201, 7e-06, 0, 7e-06, 0.032, 0.017, 0.032, 0.002443, 0.002443, 0,
+                                                     0.226, 0.226, 0.017, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.26, 0.26, 0.3, 0, 0,
+                                                     0, 0.3, 1.6, 1.6, 0, 0, 0, 0.26, 0.3, 0.26, 0, 0, 0, 1.8, 1.8, 0.3, 1.8e-05, 0.000203, 2.5e-05, 0.000155, -0.001, -0.002, -0.032,
+                                                     0.073, 0, -0.002, 0.003, 0.001, -0.017, 0, 0.003,
+                                                     -0.098, 1, 0, 0, 0, 0, 0, 0, dt, 3.142, 0, 0, 0.14, 0, -0.12, 0, 1.5, 0.05, 0, 5.7, 3.4, 3.4, 5.7 };
 
     uvms_simulate_argument = {uvms_state,
                               uvms_forces_,
                               parameter_values};
 
     // Log the uvms_simulate_argument
-    std::cout << "uvms_simulate_argument:" << std::endl;
-    for (const auto &arg : uvms_simulate_argument)
-    {
-        std::cout << arg << std::endl;
-    }
+    // std::cout << "uvms_simulate_argument:" << std::endl;
+    // for (const auto &arg : uvms_simulate_argument)
+    // {
+    //     std::cout << arg << std::endl;
+    // }
 
     uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
 
     next_states = uvms_sim.at(0).nonzeros();
 
-    std::cout << "uvms_simulate_ response:" << std::endl;
-    for (const auto &arg : next_states)
-    {
-        std::cout << arg << std::endl;
-    }
+    // std::cout << "uvms_simulate_ response:" << std::endl;
+    // for (const auto &arg : next_states)
+    // {
+    //     std::cout << arg << std::endl;
+    // }
 
-    casadi::DM euler_vector = casadi::DM::vertcat({
-        next_states[3], next_states[4], next_states[5]});
+    casadi::DM euler_vector = casadi::DM::vertcat({next_states[3], next_states[4], next_states[5]});
     // Convert euler to quaternion states
     quaternion_states = fun_service.euler2q(euler_vector);
 
