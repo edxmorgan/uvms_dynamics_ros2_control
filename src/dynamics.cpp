@@ -146,6 +146,12 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
 
 void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
 {
+    // Log the uvms_simulate_argument
+    std::cout << "uvms_simulate_argument:" <<  agent_id << std::endl;
+    for (const auto &arg : uvms_world[agent_id].current_position)
+    {
+        std::cout << arg << std::endl;
+    }
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 4,
                                           uvms_world[agent_id].current_position.end());
 
@@ -189,22 +195,10 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
                               uvms_forces_,
                               parameter_values};
 
-    // Log the uvms_simulate_argument
-    // std::cout << "uvms_simulate_argument:" << std::endl;
-    // for (const auto &arg : uvms_simulate_argument)
-    // {
-    //     std::cout << arg << std::endl;
-    // }
 
     uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
 
     next_states = uvms_sim.at(0).nonzeros();
-
-    // std::cout << "uvms_simulate_ response:" << std::endl;
-    // for (const auto &arg : next_states)
-    // {
-    //     std::cout << arg << std::endl;
-    // }
 
     casadi::DM euler_vector = casadi::DM::vertcat({next_states[3], next_states[4], next_states[5]});
     // Convert euler to quaternion states
@@ -235,78 +229,6 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
     uvms_world[agent_id].next_velocity[7] = next_states[17];
     uvms_world[agent_id].next_velocity[8] = next_states[18];
     uvms_world[agent_id].next_velocity[9] = next_states[19];
-
-    // uvms_world[agent_id].force_input[6] = arm_sim.at(1).nonzeros()[0];
-    // uvms_world[agent_id].force_input[7] = arm_sim.at(1).nonzeros()[1];
-    // uvms_world[agent_id].force_input[8] = arm_sim.at(1).nonzeros()[2];
-    // uvms_world[agent_id].force_input[9] = arm_sim.at(1).nonzeros()[3];
-};
-
-void casadi_uvms::Dynamics::decoupled_simulate(int &agent_id)
-{
-    std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 4,
-                                          uvms_world[agent_id].current_position.end());
-
-    std::vector<casadi::DM> arm_velocity_(uvms_world[agent_id].current_velocity.end() - 4,
-                                          uvms_world[agent_id].current_velocity.end());
-
-    std::vector<casadi::DM> arm_forces_(uvms_world[agent_id].force_input.end() - 4,
-                                        uvms_world[agent_id].force_input.end());
-
-    arm_simulate_argument = {arm_position_,
-                             arm_velocity_,
-                             arm_forces_,
-                             uvms_world[agent_id].model_p,
-                             dt};
-
-    // Original code: constructing the vector with 7 elements
-    std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
-                                          uvms_world[agent_id].current_position.begin() + 7);
-
-    std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
-                                         uvms_world[agent_id].current_velocity.begin() + 6);
-
-    std::vector<casadi::DM> vehicle_state;
-    vehicle_state.reserve(13);
-    vehicle_state.insert(vehicle_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
-    vehicle_state.insert(vehicle_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
-
-    std::vector<casadi::DM> vehicle_forces_(uvms_world[agent_id].force_input.begin(),
-                                            uvms_world[agent_id].force_input.begin() + 6);
-
-    vehicle_simulate_argument = {vehicle_state, vehicle_forces_, dt, uvms_world[agent_id].flow_velocity};
-    // // Log the uvms_simulate_argument
-    // std::cout << "vehicle_simulate_argument:" << std::endl;
-    // for (const auto& arg : vehicle_simulate_argument) {
-    //     std::cout << arg << std::endl;
-    // }
-    arm_sim = fun_service.decoupled_manipulator_uvms_dynamics(arm_simulate_argument);
-    vehicle_sim = fun_service.decoupled_vehicle_uvms_dynamics(vehicle_simulate_argument);
-
-    uvms_world[agent_id].next_position[0] = vehicle_sim.at(0).nonzeros()[0];
-    uvms_world[agent_id].next_position[1] = vehicle_sim.at(0).nonzeros()[1];
-    uvms_world[agent_id].next_position[2] = vehicle_sim.at(0).nonzeros()[2];
-    uvms_world[agent_id].next_position[3] = vehicle_sim.at(0).nonzeros()[3];
-    uvms_world[agent_id].next_position[4] = vehicle_sim.at(0).nonzeros()[4];
-    uvms_world[agent_id].next_position[5] = vehicle_sim.at(0).nonzeros()[5];
-    uvms_world[agent_id].next_position[6] = vehicle_sim.at(0).nonzeros()[6];
-
-    uvms_world[agent_id].next_velocity[0] = vehicle_sim.at(0).nonzeros()[7];
-    uvms_world[agent_id].next_velocity[1] = vehicle_sim.at(0).nonzeros()[8];
-    uvms_world[agent_id].next_velocity[2] = vehicle_sim.at(0).nonzeros()[9];
-    uvms_world[agent_id].next_velocity[3] = vehicle_sim.at(0).nonzeros()[10];
-    uvms_world[agent_id].next_velocity[4] = vehicle_sim.at(0).nonzeros()[11];
-    uvms_world[agent_id].next_velocity[5] = vehicle_sim.at(0).nonzeros()[12];
-
-    uvms_world[agent_id].next_position[7] = arm_sim.at(0).nonzeros()[0];
-    uvms_world[agent_id].next_position[8] = arm_sim.at(0).nonzeros()[1];
-    uvms_world[agent_id].next_position[9] = arm_sim.at(0).nonzeros()[2];
-    uvms_world[agent_id].next_position[10] = arm_sim.at(0).nonzeros()[3];
-
-    uvms_world[agent_id].next_velocity[6] = arm_sim.at(0).nonzeros()[4];
-    uvms_world[agent_id].next_velocity[7] = arm_sim.at(0).nonzeros()[5];
-    uvms_world[agent_id].next_velocity[8] = arm_sim.at(0).nonzeros()[6];
-    uvms_world[agent_id].next_velocity[9] = arm_sim.at(0).nonzeros()[7];
 
     // uvms_world[agent_id].force_input[6] = arm_sim.at(1).nonzeros()[0];
     // uvms_world[agent_id].force_input[7] = arm_sim.at(1).nonzeros()[1];
