@@ -32,6 +32,10 @@
 #include "uvms_controller/so_loader.hpp"
 #include "uvms_controller/dynamics.hpp"
 
+
+#include "realtime_tools/realtime_publisher.h"
+#include "tf2_msgs/msg/tf_message.hpp"
+
 namespace uvms_controller
 {
 
@@ -122,6 +126,11 @@ namespace uvms_controller
 
     realtime_tools::RealtimeBuffer<std::shared_ptr<casadi_uvms::CmdType>> rt_command_ptr_;
     rclcpp::Subscription<casadi_uvms::CmdType>::SharedPtr uvms_command_subscriber_;
+
+
+    std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> frame_transform_publisher_;
+    std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
+        realtime_frame_transform_publisher_;
 
     // private attributes
     size_t force_input_size = casadi_uvms::Dynamics::Model().force_input.size();

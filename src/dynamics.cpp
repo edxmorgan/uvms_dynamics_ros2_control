@@ -14,6 +14,7 @@
 
 #include "uvms_controller/dynamics.hpp"
 
+
 void casadi_uvms::Dynamics::init_dynamics()
 {
     // Use CasADi's "external" to load the compiled dynamics functions
@@ -25,8 +26,20 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
     fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
 
+    fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
+
     fun_service.vehicle_position_pid = fun_service.load_casadi_fun("pidC", "libPd.so");
     fun_service.vehicle_velocity_pid = fun_service.load_casadi_fun("vpidC", "libVPd.so");
+};
+
+void casadi_uvms::Dynamics::publish_foward_kinematics(int &agent_id)
+{
+    DM a = DM::vertcat({DM(pi), DM(pi), DM(pi), DM(pi)});
+    DM b = DM::vertcat({DM(0.140), DM(0.000), DM(-0.120)});
+    DM c = DM::vertcat({DM(3.142), DM(0.000), DM(0.000)});
+    DM d = DM::vertcat({DM(0.2), DM(1.0), DM(0.5), DM(0.0), DM(0.0), DM(0.0)});
+    std::vector<DM> fk_argumt = {a, b, c, d};
+    std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
 };
 
 controller_interface::return_type casadi_uvms::Dynamics::position_controller(
@@ -147,11 +160,11 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
 void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
 {
     // Log the uvms_simulate_argument
-    std::cout << "uvms_simulate_argument:" <<  agent_id << std::endl;
-    for (const auto &arg : uvms_world[agent_id].current_position)
-    {
-        std::cout << arg << std::endl;
-    }
+    // std::cout << "uvms_simulate_argument:" <<  agent_id << std::endl;
+    // for (const auto &arg : uvms_world[agent_id].current_position)
+    // {
+    //     std::cout << arg << std::endl;
+    // }
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 4,
                                           uvms_world[agent_id].current_position.end());
 
@@ -184,17 +197,16 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
                                          uvms_world[agent_id].force_input.end());
 
     std::vector<casadi::DM> parameter_values = {2253.54, 2253.54, 2253.54, 340.4, 0, 0, 0, 1e-05, 0, 0, 0, 0, 0, 0, 1e-05,
-                                                     0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8, 1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0,
-                                                     0.032, 0.032, 0.017, 0, 0.001716, 0.001716, 0.017, 0.201, 0.201, 7e-06, 0, 7e-06, 0.032, 0.017, 0.032, 0.002443, 0.002443, 0,
-                                                     0.226, 0.226, 0.017, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.26, 0.26, 0.3, 0, 0,
-                                                     0, 0.3, 1.6, 1.6, 0, 0, 0, 0.26, 0.3, 0.26, 0, 0, 0, 1.8, 1.8, 0.3, 1.8e-05, 0.000203, 2.5e-05, 0.000155, -0.001, -0.002, -0.032,
-                                                     0.073, 0, -0.002, 0.003, 0.001, -0.017, 0, 0.003,
-                                                     -0.098, 1, 0, 0, 0, 0, 0, 0, dt, 3.142, 0, 0, 0.14, 0, -0.12, 0, 1.5, 0.05, 0, 5.7, 3.4, 3.4, 5.7 };
+                                                0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8, 1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0,
+                                                0.032, 0.032, 0.017, 0, 0.001716, 0.001716, 0.017, 0.201, 0.201, 7e-06, 0, 7e-06, 0.032, 0.017, 0.032, 0.002443, 0.002443, 0,
+                                                0.226, 0.226, 0.017, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.26, 0.26, 0.3, 0, 0,
+                                                0, 0.3, 1.6, 1.6, 0, 0, 0, 0.26, 0.3, 0.26, 0, 0, 0, 1.8, 1.8, 0.3, 1.8e-05, 0.000203, 2.5e-05, 0.000155, -0.001, -0.002, -0.032,
+                                                0.073, 0, -0.002, 0.003, 0.001, -0.017, 0, 0.003,
+                                                -0.098, 1, 0, 0, 0, 0, 0, 0, dt, 3.142, 0, 0, 0.14, 0, -0.12, 0, 1.5, 0.05, 0, 5.7, 3.4, 3.4, 5.7};
 
     uvms_simulate_argument = {uvms_state,
                               uvms_forces_,
                               parameter_values};
-
 
     uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
 

@@ -27,13 +27,22 @@
 
 using namespace casadi;
 
+namespace
+{
+  constexpr auto DEFAULT_TRANSFORM_TOPIC = "/tf";
+} // namespace
+
+
 namespace uvms_controller
 {
 
+  
   UvmsControllerBase::UvmsControllerBase()
       : controller_interface::ControllerInterface(),
         rt_command_ptr_(nullptr),
-        uvms_command_subscriber_(nullptr)
+        uvms_command_subscriber_(nullptr),
+        frame_transform_publisher_(nullptr),
+        realtime_frame_transform_publisher_(nullptr)
   {
   }
 
@@ -77,6 +86,32 @@ namespace uvms_controller
         { rt_command_ptr_.writeFromNonRT(msg); });
 
     RCLCPP_INFO(get_node()->get_logger(), "configure successful");
+
+
+    // initialize transform publisher and message
+        try
+        {
+          frame_transform_publisher_ = get_node()->create_publisher<tf2_msgs::msg::TFMessage>(
+              DEFAULT_TRANSFORM_TOPIC, rclcpp::SystemDefaultsQoS());
+
+          realtime_frame_transform_publisher_ =
+              std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
+                  frame_transform_publisher_);
+
+          auto &frame_transform_message = realtime_frame_transform_publisher_->msg_;
+          frame_transform_message.transforms.resize(1);
+          // frame_transform_message.transforms.front().header.frame_id = parent_frame_id;
+          // frame_transform_message.transforms.front().child_frame_id = child_frame_id;
+        }
+        catch (const std::exception &e)
+        {
+          fprintf(
+              stderr, "Exception thrown during publisher creation at configure stage with message : %s \n",
+              e.what());
+          return CallbackReturn::ERROR;
+        }
+
+
     return controller_interface::CallbackReturn::SUCCESS;
   }
 
@@ -181,10 +216,11 @@ namespace uvms_controller
       uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3.0, 2.3, 2.2, 0.3, 3.0, 1.8, 1.0, 1.15};
 
       model_dynamics.coupled_simulate(uvms.id);
-
+      model_dynamics.publish_foward_kinematics(uvms.id);
       set_command_values(uvms.poseCommander, uvms.next_position, 11);
       set_command_values(uvms.velCommander, uvms.next_velocity, 10);
       set_command_values(uvms.effortCommander, uvms.force_input, 10);
+
     }
 
     return controller_interface::return_type::OK;

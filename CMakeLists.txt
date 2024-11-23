@@ -16,6 +16,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   std_msgs
   casadi
+  tf2_msgs
+  tf2
   uvms_interfaces
 )
 find_package(ament_cmake REQUIRED)

@@ -22,8 +22,10 @@
 #include "controller_interface/controller_interface.hpp"
 #include "uvms_interfaces/msg/command.hpp"
 
+
 namespace casadi_uvms
 {
+
     using CmdType = uvms_interfaces::msg::Command;
     class Dynamics
     {
@@ -45,6 +47,7 @@ namespace casadi_uvms
         std::vector<double> next_states;
         std::vector<DM> quaternion_states;
         std::vector<DM> euler_states;
+
     public:
         struct Model
         {
@@ -87,7 +90,7 @@ namespace casadi_uvms
         }
 
         void init_dynamics();
-
+        void publish_foward_kinematics(int &agent_id);
         void coupled_simulate(int &agent_id);
 
         void decoupled_simulate(int &agent_id);
