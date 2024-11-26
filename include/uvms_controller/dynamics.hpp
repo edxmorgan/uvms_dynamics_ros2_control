@@ -52,6 +52,7 @@ namespace casadi_uvms
         struct Model
         {
             int id;
+            std::string prefix;
             std::vector<double> pose_rot;
             std::vector<double> pose_trl;
             std::vector<double> current_position = std::vector<double>(11);
@@ -90,7 +91,7 @@ namespace casadi_uvms
         }
 
         void init_dynamics();
-        void publish_foward_kinematics(int &agent_id);
+        std::vector<DM> publish_foward_kinematics(int &agent_id);
         void coupled_simulate(int &agent_id);
 
         void decoupled_simulate(int &agent_id);

@@ -14,7 +14,6 @@
 
 #include "uvms_controller/dynamics.hpp"
 
-
 void casadi_uvms::Dynamics::init_dynamics()
 {
     // Use CasADi's "external" to load the compiled dynamics functions
@@ -32,14 +31,23 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.vehicle_velocity_pid = fun_service.load_casadi_fun("vpidC", "libVPd.so");
 };
 
-void casadi_uvms::Dynamics::publish_foward_kinematics(int &agent_id)
+std::vector<DM> casadi_uvms::Dynamics::publish_foward_kinematics(int &agent_id)
 {
-    DM a = DM::vertcat({DM(pi), DM(pi), DM(pi), DM(pi)});
-    DM b = DM::vertcat({DM(0.140), DM(0.000), DM(-0.120)});
-    DM c = DM::vertcat({DM(3.142), DM(0.000), DM(0.000)});
-    DM d = DM::vertcat({DM(0.2), DM(1.0), DM(0.5), DM(0.0), DM(0.0), DM(0.0)});
-    std::vector<DM> fk_argumt = {a, b, c, d};
+    DM q = DM::vertcat({DM(uvms_world[agent_id].current_position[7]), DM(uvms_world[agent_id].current_position[8]),
+                        DM(uvms_world[agent_id].current_position[9]), DM(uvms_world[agent_id].current_position[10])});
+
+    DM baseT_xyz = DM::vertcat({DM(0.140), DM(0.000), DM(-0.120)});
+    DM baseT_rpy = DM::vertcat({DM(3.142), DM(0.000), DM(0.000)});
+
+    DM pn = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
+                         DM(uvms_world[agent_id].current_position[1]),
+                         DM(uvms_world[agent_id].current_position[2]),
+                         DM(euler_states.at(0).nonzeros()[0]),
+                         DM(euler_states.at(0).nonzeros()[1]),
+                         DM(euler_states.at(0).nonzeros()[2])});
+    std::vector<DM> fk_argumt = {q, baseT_xyz, baseT_rpy, pn};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
+    return T_i;
 };
 
 controller_interface::return_type casadi_uvms::Dynamics::position_controller(

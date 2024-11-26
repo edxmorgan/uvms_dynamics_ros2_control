@@ -88,6 +88,7 @@ namespace uvms_controller
       };
 
       std::string agent_prefix = params_.agents_map.at(agent_).prefix;
+      uvms_agent.prefix = agent_prefix;
       RCLCPP_INFO(get_node()->get_logger(), "Agent prefix --> %s", agent_prefix.c_str());
       ////////////////////////////////////////////
 
