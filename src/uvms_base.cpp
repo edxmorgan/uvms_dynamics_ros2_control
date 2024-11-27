@@ -233,10 +233,13 @@ namespace uvms_controller
           transform.transform.translation.y = T_i[i].nonzeros()[1];
           transform.transform.translation.z = T_i[i].nonzeros()[2];
 
-          transform.transform.rotation.x = 0;
-          transform.transform.rotation.y = 0;
-          transform.transform.rotation.z = 0;
-          transform.transform.rotation.w = 1;
+          std::vector<double> T_i_quat = model_dynamics.convertEulerToQuaternion(T_i[i].nonzeros()[3],
+                                                                                 T_i[i].nonzeros()[4],
+                                                                                 T_i[i].nonzeros()[5]);
+          transform.transform.rotation.x = T_i_quat[1];
+          transform.transform.rotation.y = T_i_quat[2];
+          transform.transform.rotation.z = T_i_quat[3];
+          transform.transform.rotation.w = T_i_quat[0];
         }
         realtime_frame_transform_publisher_->unlockAndPublish();
       };

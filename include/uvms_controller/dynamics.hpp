@@ -94,6 +94,9 @@ namespace casadi_uvms
         std::vector<DM> publish_foward_kinematics(int &agent_id);
         void coupled_simulate(int &agent_id);
 
+        std::vector<double> convertEulerToQuaternion(const double r, const double p, const double y);
+        std::vector<double> convertQuaternionToEuler(const double w, const double x, const double y, const double z);
+
         void decoupled_simulate(int &agent_id);
         controller_interface::return_type position_controller(
             std::shared_ptr<CmdType> &uvms_commands,
