@@ -55,14 +55,17 @@ namespace casadi_uvms
             std::string prefix;
             std::vector<double> pose_rot;
             std::vector<double> pose_trl;
-            std::vector<double> current_position = std::vector<double>(11);
-            std::vector<double> prev_position = std::vector<double>(11);
-            std::vector<double> next_position = std::vector<double>(11);
-            std::vector<double> current_velocity = std::vector<double>(10,0);
-            std::vector<double> prev_velocity = std::vector<double>(10,0);
-            std::vector<double> next_velocity = std::vector<double>(10,0);
-            std::vector<double> force_input = std::vector<double>(10,0);
-            std::vector<double> model_p = std::vector<double>(12);
+            
+            std::vector<double> current_position = std::vector<double>(12);
+            std::vector<double> prev_position = std::vector<double>(12);
+            std::vector<double> next_position = std::vector<double>(12);
+
+            std::vector<double> current_velocity = std::vector<double>(11,0);
+            std::vector<double> prev_velocity = std::vector<double>(11,0);
+            std::vector<double> next_velocity = std::vector<double>(11,0);
+            std::vector<double> force_input = std::vector<double>(11,0);
+
+            std::vector<double> model_p = std::vector<double>(12); // model parameters
             std::vector<double> flow_velocity = std::vector<double>(6,0);
             std::vector<double> uvms_base_TF_;
             std::vector<int> poseSubscriber;
