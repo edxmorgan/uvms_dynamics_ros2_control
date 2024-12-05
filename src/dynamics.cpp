@@ -87,9 +87,6 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
     std::vector<casadi::DM> arm_velocity_(uvms_world[agent_id].current_velocity.end() - 5,
                                           uvms_world[agent_id].current_velocity.end());
 
-    // std::vector<casadi::DM> arm_forces_(uvms_world[agent_id].force_input.end() - 5,
-    //                                     uvms_world[agent_id].force_input.end());
-
     std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
                                           uvms_world[agent_id].current_position.begin() + 7);
 
