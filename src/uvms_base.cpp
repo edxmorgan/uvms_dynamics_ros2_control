@@ -176,8 +176,8 @@ namespace uvms_controller
       uvms.prev_position = uvms.current_position;
       uvms.prev_velocity = uvms.current_velocity;
 
-      uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
-      uvms.current_velocity = get_state_values(uvms.velSubscriber, 10);
+      uvms.current_position = get_state_values(uvms.poseSubscriber, 12);
+      uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
 
       if ((*uvms_commands)->command_type == "force")
       {
@@ -188,23 +188,23 @@ namespace uvms_controller
         return result;
       };
 
-      if ((*uvms_commands)->command_type == "velocity")
-      {
-        result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      };
-      if (result == controller_interface::return_type::ERROR)
-      {
-        return result;
-      };
+      // if ((*uvms_commands)->command_type == "velocity")
+      // {
+      //   result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      // };
+      // if (result == controller_interface::return_type::ERROR)
+      // {
+      //   return result;
+      // };
 
-      if ((*uvms_commands)->command_type == "position")
-      {
-        result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      };
-      if (result == controller_interface::return_type::ERROR)
-      {
-        return result;
-      };
+      // if ((*uvms_commands)->command_type == "position")
+      // {
+      //   result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      // };
+      // if (result == controller_interface::return_type::ERROR)
+      // {
+      //   return result;
+      // };
 
       // Initialize fixed parameters
       uvms.flow_velocity.assign(6, 0.0);
@@ -244,9 +244,9 @@ namespace uvms_controller
         realtime_frame_transform_publisher_->unlockAndPublish();
       };
 
-      set_command_values(uvms.poseCommander, uvms.next_position, 11);
-      set_command_values(uvms.velCommander, uvms.next_velocity, 10);
-      set_command_values(uvms.effortCommander, uvms.force_input, 10);
+      set_command_values(uvms.poseCommander, uvms.next_position, 12);
+      set_command_values(uvms.velCommander, uvms.next_velocity, 11);
+      set_command_values(uvms.effortCommander, uvms.force_input, 11);
     }
 
     return controller_interface::return_type::OK;
