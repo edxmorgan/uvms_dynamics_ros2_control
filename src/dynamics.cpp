@@ -18,17 +18,14 @@ void casadi_uvms::Dynamics::init_dynamics()
 {
     // Use CasADi's "external" to load the compiled dynamics functions
     fun_service.usage_cplusplus_checks("test", "libtest.so", "UVMS Controller");
-    fun_service.decoupled_manipulator_uvms_dynamics = fun_service.load_casadi_fun("Mnext", "libMnext.so");
-    fun_service.decoupled_vehicle_uvms_dynamics = fun_service.load_casadi_fun("Vnext", "libVnext.so");
 
-    fun_service.coupled_uvms_dynamics = fun_service.load_casadi_fun("UVMSnext", "libUVMS.so");
+    fun_service.coupled_uvms_dynamics = fun_service.load_casadi_fun("UVMSnext", "libUVMS_coupled.so");
+    fun_service.dcoupled_uvms_dynamics = fun_service.load_casadi_fun("UVMSnext", "libUVMS_dcoupled.so");
+
     fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
     fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
 
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
-
-    fun_service.vehicle_position_pid = fun_service.load_casadi_fun("pidC", "libPd.so");
-    fun_service.vehicle_velocity_pid = fun_service.load_casadi_fun("vpidC", "libVPd.so");
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(int &agent_id)
@@ -132,6 +129,7 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
                               parameter_values};
 
     uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
+    // uvms_sim = fun_service.dcoupled_uvms_dynamics(uvms_simulate_argument);
 
     next_states = uvms_sim.at(0).nonzeros();
 
