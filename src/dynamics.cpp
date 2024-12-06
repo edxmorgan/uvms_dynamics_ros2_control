@@ -31,7 +31,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.vehicle_velocity_pid = fun_service.load_casadi_fun("vpidC", "libVPd.so");
 };
 
-std::vector<DM> casadi_uvms::Dynamics::publish_foward_kinematics(int &agent_id)
+std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(int &agent_id)
 {
     DM q = DM::vertcat({DM(uvms_world[agent_id].current_position[7]), DM(uvms_world[agent_id].current_position[8]),
                         DM(uvms_world[agent_id].current_position[9]), DM(uvms_world[agent_id].current_position[10])});
@@ -43,18 +43,27 @@ std::vector<DM> casadi_uvms::Dynamics::publish_foward_kinematics(int &agent_id)
                                                               uvms_world[agent_id].current_position[4],
                                                               uvms_world[agent_id].current_position[5],
                                                               uvms_world[agent_id].current_position[6]);
-
+    DM ned_z = -DM(uvms_world[agent_id].current_position[2]);
     DM pn = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
                          DM(uvms_world[agent_id].current_position[1]),
-                         DM(uvms_world[agent_id].current_position[2]),
+                         ned_z,
                          DM(eul_states[0]),
                          DM(eul_states[1]),
                          DM(eul_states[2])});
+
+    DM qned = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
+                           DM(uvms_world[agent_id].current_position[1]),
+                           ned_z,
+                           DM(uvms_world[agent_id].current_position[3]),
+                           DM(uvms_world[agent_id].current_position[4]),
+                           DM(uvms_world[agent_id].current_position[5]),
+                           DM(uvms_world[agent_id].current_position[6])});
+
     std::vector<DM> fk_argumt = {q, baseT_xyz, baseT_rpy, pn};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
-    return T_i;
-};
 
+    return {T_i, qned};
+};
 
 controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     std::shared_ptr<CmdType> &uvms_commands,
@@ -103,12 +112,12 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
     uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.begin() + 3);
     uvms_state.insert(uvms_state.end(), eul_states.begin(), eul_states.end());
 
-    uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end()-1);
+    uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end() - 1);
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
-    uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end()-1);
+    uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
-                                         uvms_world[agent_id].force_input.end() -1);
+                                         uvms_world[agent_id].force_input.end() - 1);
 
     std::vector<casadi::DM> parameter_values = {2253.54, 2253.54, 2253.54, 340.4, 0, 0, 0, 1e-05, 0, 0, 0, 0, 0, 0, 1e-05,
                                                 0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8, 1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0,

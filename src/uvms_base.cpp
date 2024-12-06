@@ -96,7 +96,7 @@ namespace uvms_controller
               frame_transform_publisher_);
 
       auto &frame_transform_message = realtime_frame_transform_publisher_->msg_;
-      frame_transform_message.transforms.resize(5);
+      frame_transform_message.transforms.resize(6);
     }
     catch (const std::exception &e)
     {
@@ -211,13 +211,10 @@ namespace uvms_controller
       uvms.model_p = {1e-05, 1e-05, 1e-05, 1e-05, 3.0, 2.3, 2.2, 0.3, 3.0, 1.8, 1.0, 1.15};
 
       model_dynamics.coupled_simulate(uvms.id);
-      std::vector<DM> T_i = model_dynamics.publish_foward_kinematics(uvms.id);
 
-      // // Iterate over T_i and log each element
-      // for (size_t i = 0; i < T_i.size(); ++i)
-      // {
-      //   RCLCPP_INFO(get_node()->get_logger(), "T_i[%zu]: %s", i, T_i[i].get_str().c_str());
-      // }
+      std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(uvms.id);
+      std::vector<DM> T_i = fw_result.first;
+      DM qned = fw_result.second;
 
       if (realtime_frame_transform_publisher_->trylock())
       {
@@ -238,6 +235,23 @@ namespace uvms_controller
           transform.transform.rotation.y = T_i[i].nonzeros()[5];
           transform.transform.rotation.z = T_i[i].nonzeros()[6];
         }
+
+        // Base transform
+        auto &base_transform = transforms[T_i.size()]; // Use the next index after T_i.size()
+        base_transform.header.stamp = time;
+        base_transform.header.frame_id = "base_link";
+        base_transform.child_frame_id = uvms.prefix + "vehicle_base";
+
+        // Access position from qned
+        base_transform.transform.translation.x = qned.nonzeros()[0];
+        base_transform.transform.translation.y = qned.nonzeros()[1];
+        base_transform.transform.translation.z = qned.nonzeros()[2];
+
+        base_transform.transform.rotation.w = qned.nonzeros()[3];
+        base_transform.transform.rotation.x = qned.nonzeros()[4];
+        base_transform.transform.rotation.y = qned.nonzeros()[5];
+        base_transform.transform.rotation.z = qned.nonzeros()[6];
+
         realtime_frame_transform_publisher_->unlockAndPublish();
       };
 

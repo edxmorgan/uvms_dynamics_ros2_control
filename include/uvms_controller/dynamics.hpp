@@ -94,7 +94,8 @@ namespace casadi_uvms
         }
 
         void init_dynamics();
-        std::vector<DM> publish_foward_kinematics(int &agent_id);
+
+        std::pair<std::vector<DM>, DM> publish_forward_kinematics(int &agent_id);
         void coupled_simulate(int &agent_id);
 
         std::vector<double> convertEulerToQuaternion(const double r, const double p, const double y);
