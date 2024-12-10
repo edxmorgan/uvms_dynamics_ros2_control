@@ -128,8 +128,8 @@ void casadi_uvms::Dynamics::coupled_simulate(int &agent_id)
                               uvms_forces_,
                               parameter_values};
 
-    uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
-    // uvms_sim = fun_service.dcoupled_uvms_dynamics(uvms_simulate_argument);
+    // uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
+    uvms_sim = fun_service.dcoupled_uvms_dynamics(uvms_simulate_argument);
 
     next_states = uvms_sim.at(0).nonzeros();
 
