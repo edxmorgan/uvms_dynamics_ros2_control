@@ -64,8 +64,8 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
 
 controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     std::shared_ptr<CmdType> &uvms_commands,
-    const rclcpp::Logger &logger,
-    const rclcpp::Clock::SharedPtr &clock,
+    const rclcpp::Logger & /*logger*/,
+    const rclcpp::Clock::SharedPtr & /*clock*/,
     int &agent_id)
 {
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 10 elements (vehicle + manipulator)
