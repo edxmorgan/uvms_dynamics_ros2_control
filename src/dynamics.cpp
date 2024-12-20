@@ -19,8 +19,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     // Use CasADi's "external" to load the compiled dynamics functions
     fun_service.usage_cplusplus_checks("test", "libtest.so", "UVMS Controller");
 
-    fun_service.coupled_uvms_dynamics = fun_service.load_casadi_fun("UVMSnext", "libUVMS_coupled.so");
-    fun_service.dcoupled_uvms_dynamics = fun_service.load_casadi_fun("UVMSnext", "libUVMS_dcoupled.so");
+    fun_service.uvms_dynamics = fun_service.load_casadi_fun("UVMSnext_use_coupled", "libUVMS_xnext.so");
 
     fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
     fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
@@ -116,20 +115,23 @@ void casadi_uvms::Dynamics::simulate(int &agent_id)
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
                                          uvms_world[agent_id].force_input.end() - 1);
 
-    std::vector<casadi::DM> parameter_values = {2253.54, 2253.54, 2253.54, 340.4, 0, 0, 0, 1e-05, 0, 0, 0, 0, 0, 0, 1e-05,
-                                                0, 0, 0, 1e-05, 0, 1e-05, 0, 0, 0, 0, 3, 2.3, 2.2, 0.3, 0, 0, 0, 0, 3, 1.8, 1, 1.15, 0, 0, 0, 0, 0, 0, 0, 7e-06, 7e-06, 0,
-                                                0.032, 0.032, 0.017, 0, 0.001716, 0.001716, 0.017, 0.201, 0.201, 7e-06, 0, 7e-06, 0.032, 0.017, 0.032, 0.002443, 0.002443, 0,
-                                                0.226, 0.226, 0.017, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.26, 0.26, 0.3, 0, 0,
-                                                0, 0.3, 1.6, 1.6, 0, 0, 0, 0.26, 0.3, 0.26, 0, 0, 0, 1.8, 1.8, 0.3, 1.8e-05, 0.000203, 2.5e-05, 0.000155, -0.001, -0.002, -0.032,
-                                                0.073, 0, -0.002, 0.003, 0.001, -0.017, 0, 0.003,
-                                                -0.098, 1, 0, 0, 0, 0, 0, 0, dt, 3.142, 0, 0, 0.14, 0, -0.12, 0, 1.5, 0.05, 0, 5.7, 3.4, 3.4, 5.7};
+    std::vector<casadi::DM> model_parameters = {2253.54, 2253.54, 2253.54, 340.4, 1e-05, 1e-05, 1e-05, 1e-05, 
+                                            0, 0, 0, 0, 
+                                            3, 2.3, 2.2, 0.3, 
+                                            0, 0, 0, 0, 
+                                            3, 1.8, 1, 1.15};
 
-    uvms_simulate_argument = {uvms_state,
-                              uvms_forces_,
-                              parameter_values};
+    std::vector<casadi::DM> base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
-    uvms_sim = fun_service.coupled_uvms_dynamics(uvms_simulate_argument);
-    // uvms_sim = fun_service.dcoupled_uvms_dynamics(uvms_simulate_argument);
+    std::vector<casadi::DM> joint_min = {0.  , 1.5 , 0.05, 0.};
+
+    std::vector<casadi::DM> joint_max = {5.7, 3.4, 3.4, 5.7};
+
+    casadi::DM is_coupled = 1;
+
+    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, 0.04, model_parameters, base_To, joint_min, joint_max};
+
+    uvms_sim = fun_service.uvms_dynamics(uvms_simulate_argument);
 
     next_states = uvms_sim.at(0).nonzeros();
 

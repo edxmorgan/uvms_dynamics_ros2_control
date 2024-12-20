@@ -28,8 +28,7 @@ namespace casadi_uvms
 
     public:
         Function tester; // uvms casadi tester
-        Function coupled_uvms_dynamics; // uvms coupled_dynamics
-        Function dcoupled_uvms_dynamics; // uvms dcoupled_dynamics
+        Function uvms_dynamics; // uvms dynamics
         Function q2euler; //quaternion to euler function
         Function euler2q; //euler 2 quaternion function
         Function forward_kinematics;
