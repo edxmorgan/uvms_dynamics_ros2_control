@@ -123,13 +123,13 @@ void casadi_uvms::Dynamics::simulate(int &agent_id)
 
     std::vector<casadi::DM> base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
-    std::vector<casadi::DM> joint_min = {0.  , 1.5 , 0.05, 0.};
+    std::vector<casadi::DM> joint_min = {1.0, 0.01, 0.01, 0.01};
 
-    std::vector<casadi::DM> joint_max = {5.7, 3.4, 3.4, 5.7};
+    std::vector<casadi::DM> joint_max = {5.5, 3.40, 3.40, 5.70};
 
     casadi::DM is_coupled = 1;
 
-    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, 0.04, model_parameters, base_To, joint_min, joint_max};
+    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, model_parameters, base_To, joint_min, joint_max};
 
     uvms_sim = fun_service.uvms_dynamics(uvms_simulate_argument);
 
