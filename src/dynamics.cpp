@@ -28,9 +28,9 @@ void casadi_uvms::Dynamics::init_dynamics()
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
-            const rclcpp::Logger &logger,
-            const rclcpp::Clock::SharedPtr &clock,
-            int &agent_id)
+    const rclcpp::Logger &logger,
+    const rclcpp::Clock::SharedPtr &clock,
+    int &agent_id)
 {
     DM q = DM::vertcat({DM(uvms_world[agent_id].current_position[7]), DM(uvms_world[agent_id].current_position[8]),
                         DM(uvms_world[agent_id].current_position[9]), DM(uvms_world[agent_id].current_position[10])});
@@ -82,9 +82,9 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
 };
 
 void casadi_uvms::Dynamics::simulate(
-            const rclcpp::Logger &logger,
-            const rclcpp::Clock::SharedPtr &clock,
-            int &agent_id)
+    const rclcpp::Logger &logger,
+    const rclcpp::Clock::SharedPtr &clock,
+    int &agent_id)
 {
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
                                           uvms_world[agent_id].current_position.end());
@@ -115,11 +115,23 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
                                          uvms_world[agent_id].force_input.end() - 1);
 
-    std::vector<casadi::DM> model_parameters = {2253.54, 2253.54, 2253.54, 340.4, 1e-05, 1e-05, 1e-05, 1e-05, 
-                                            0, 0, 0, 0, 
-                                            3, 2.3, 2.2, 0.3, 
-                                            0, 0, 0, 0, 
-                                            3, 1.8, 1, 1.15};
+    std::vector<casadi::DM> manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4, 1e-05, 1e-05, 1e-05, 1e-05,
+                                                      0, 0, 0, 0,
+                                                      3, 2.3, 2.2, 0.3,
+                                                      0, 0, 0, 0,
+                                                      3, 1.8, 1, 1.15};
+
+    std::vector<casadi::DM> vehicle_parameters = {1.15000e+01, 1.12815e+02, 1.14800e+02, 0.00000e+00,
+                                                  0.00000e+00, 2.00000e-02, 0.00000e+00, 0.00000e+00,
+                                                  0.00000e+00, 1.60000e-01, 1.60000e-01, 1.60000e-01,
+                                                  0.00000e+00, -5.50000e+00, -1.27000e+01, -1.45700e+01,
+                                                  -1.20000e-01, -1.20000e-01, -1.20000e-01, 0.00000e+00,
+                                                  0.00000e+00, 0.00000e+00, 0.00000e+00, -4.03000e+00,
+                                                  -6.22000e+00, -5.18000e+00, -7.00000e-02, -7.00000e-02,
+                                                  -7.00000e-02, -1.81800e+01, -2.16600e+01, -3.69900e+01,
+                                                  -1.55000e+00, -1.55000e+00, -1.55000e+00, 0.00000e+00,
+                                                  0.00000e+00, 0.00000e+00, 0.00000e+00, 0.00000e+00,
+                                                  0.00000e+00};
 
     std::vector<casadi::DM> base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
@@ -129,7 +141,7 @@ void casadi_uvms::Dynamics::simulate(
 
     casadi::DM is_coupled = 1;
 
-    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, model_parameters, base_To, joint_min, joint_max};
+    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, manipulator_parameters, vehicle_parameters, base_To, joint_min, joint_max};
 
     uvms_sim = fun_service.uvms_dynamics(uvms_simulate_argument);
 
@@ -175,20 +187,20 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].force_input[8] = uvms_sim.at(1).nonzeros()[8];
     uvms_world[agent_id].force_input[9] = uvms_sim.at(1).nonzeros()[9];
 
-//     RCLCPP_INFO(
-//         logger,
-//         "Got commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
-//         uvms_world[agent_id].force_input[0],
-//         uvms_world[agent_id].force_input[1],
-//         uvms_world[agent_id].force_input[2],
-//         uvms_world[agent_id].force_input[3],
-//         uvms_world[agent_id].force_input[4],
-//         uvms_world[agent_id].force_input[5],
-//         uvms_world[agent_id].force_input[6],
-//         uvms_world[agent_id].force_input[7],
-//         uvms_world[agent_id].force_input[8],
-//         uvms_world[agent_id].force_input[9]);
- };
+    //     RCLCPP_INFO(
+    //         logger,
+    //         "Got commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
+    //         uvms_world[agent_id].force_input[0],
+    //         uvms_world[agent_id].force_input[1],
+    //         uvms_world[agent_id].force_input[2],
+    //         uvms_world[agent_id].force_input[3],
+    //         uvms_world[agent_id].force_input[4],
+    //         uvms_world[agent_id].force_input[5],
+    //         uvms_world[agent_id].force_input[6],
+    //         uvms_world[agent_id].force_input[7],
+    //         uvms_world[agent_id].force_input[8],
+    //         uvms_world[agent_id].force_input[9]);
+};
 
 std::vector<double> casadi_uvms::Dynamics::convertEulerToQuaternion(const double r, const double p, const double y)
 {
