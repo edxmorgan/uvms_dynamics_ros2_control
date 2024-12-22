@@ -95,27 +95,36 @@ namespace casadi_uvms
 
         void init_dynamics();
 
-        std::pair<std::vector<DM>, DM> publish_forward_kinematics(int &agent_id);
+        std::pair<std::vector<DM>, DM> publish_forward_kinematics(
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id);
 
-        std::vector<double> convertEulerToQuaternion(const double r, const double p, const double y);
-        std::vector<double> convertQuaternionToEuler(const double w, const double x, const double y, const double z);
+        void simulate(
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id);
 
-        void simulate(int &agent_id);
         controller_interface::return_type position_controller(
             std::shared_ptr<CmdType> &uvms_commands,
             const rclcpp::Logger &logger,
             const rclcpp::Clock::SharedPtr &clock,
             int &agent_id);
+
         controller_interface::return_type velocity_controller(
             std::shared_ptr<CmdType> &uvms_commands,
             const rclcpp::Logger &logger,
             const rclcpp::Clock::SharedPtr &clock,
             int &agent_id);
+
         controller_interface::return_type force_controller(
             std::shared_ptr<CmdType> &uvms_commands,
             const rclcpp::Logger &logger,
             const rclcpp::Clock::SharedPtr &clock,
             int &agent_id);
+
+        std::vector<double> convertEulerToQuaternion(const double r, const double p, const double y);
+        std::vector<double> convertQuaternionToEuler(const double w, const double x, const double y, const double z);
     };
 } // namespace casadi_uvms
 

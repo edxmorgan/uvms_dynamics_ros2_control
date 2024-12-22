@@ -27,7 +27,10 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
 };
 
-std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(int &agent_id)
+std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id)
 {
     DM q = DM::vertcat({DM(uvms_world[agent_id].current_position[7]), DM(uvms_world[agent_id].current_position[8]),
                         DM(uvms_world[agent_id].current_position[9]), DM(uvms_world[agent_id].current_position[10])});
@@ -78,14 +81,11 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     return controller_interface::return_type::OK;
 };
 
-void casadi_uvms::Dynamics::simulate(int &agent_id)
+void casadi_uvms::Dynamics::simulate(
+            const rclcpp::Logger &logger,
+            const rclcpp::Clock::SharedPtr &clock,
+            int &agent_id)
 {
-    // Log the uvms_simulate_argument
-    // std::cout << "uvms_simulate_argument:" <<  agent_id << std::endl;
-    // for (const auto &arg : uvms_world[agent_id].current_position)
-    // {
-    //     std::cout << arg << std::endl;
-    // }
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
                                           uvms_world[agent_id].current_position.end());
 
@@ -163,10 +163,31 @@ void casadi_uvms::Dynamics::simulate(int &agent_id)
     uvms_world[agent_id].next_velocity[8] = next_states[18];
     uvms_world[agent_id].next_velocity[9] = next_states[19];
 
-    // uvms_world[agent_id].force_input[6] = arm_sim.at(1).nonzeros()[0];
-    // uvms_world[agent_id].force_input[7] = arm_sim.at(1).nonzeros()[1];
-    // uvms_world[agent_id].force_input[8] = arm_sim.at(1).nonzeros()[2];
-    // uvms_world[agent_id].force_input[9] = arm_sim.at(1).nonzeros()[3];
+    uvms_world[agent_id].force_input[0] = uvms_sim.at(1).nonzeros()[0];
+    uvms_world[agent_id].force_input[1] = uvms_sim.at(1).nonzeros()[1];
+    uvms_world[agent_id].force_input[2] = uvms_sim.at(1).nonzeros()[2];
+    uvms_world[agent_id].force_input[3] = uvms_sim.at(1).nonzeros()[3];
+    uvms_world[agent_id].force_input[4] = uvms_sim.at(1).nonzeros()[4];
+    uvms_world[agent_id].force_input[5] = uvms_sim.at(1).nonzeros()[5];
+
+    uvms_world[agent_id].force_input[6] = uvms_sim.at(1).nonzeros()[6];
+    uvms_world[agent_id].force_input[7] = uvms_sim.at(1).nonzeros()[7];
+    uvms_world[agent_id].force_input[8] = uvms_sim.at(1).nonzeros()[8];
+    uvms_world[agent_id].force_input[9] = uvms_sim.at(1).nonzeros()[9];
+
+    RCLCPP_INFO(
+        logger,
+        "Got commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
+        uvms_world[agent_id].force_input[0],
+        uvms_world[agent_id].force_input[1],
+        uvms_world[agent_id].force_input[2],
+        uvms_world[agent_id].force_input[3],
+        uvms_world[agent_id].force_input[4],
+        uvms_world[agent_id].force_input[5],
+        uvms_world[agent_id].force_input[6],
+        uvms_world[agent_id].force_input[7],
+        uvms_world[agent_id].force_input[8],
+        uvms_world[agent_id].force_input[9]);
 };
 
 std::vector<double> casadi_uvms::Dynamics::convertEulerToQuaternion(const double r, const double p, const double y)

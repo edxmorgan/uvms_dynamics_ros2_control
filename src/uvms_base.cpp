@@ -206,9 +206,10 @@ namespace uvms_controller
       //   return result;
       // };
 
-      model_dynamics.simulate(uvms.id);
+      model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
 
-      std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(uvms.id);
+      std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      
       std::vector<DM> T_i = fw_result.first;
       DM qned = fw_result.second;
 
