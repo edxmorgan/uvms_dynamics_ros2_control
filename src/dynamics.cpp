@@ -123,9 +123,9 @@ void casadi_uvms::Dynamics::simulate(
 
     std::vector<casadi::DM> base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
-    std::vector<casadi::DM> joint_min = {1.0, 0.01, 0.01, 0.01};
+    std::vector<casadi::DM> joint_min = {0.00, 1.50, 0.10, 0.10};
 
-    std::vector<casadi::DM> joint_max = {5.5, 3.40, 3.40, 5.70};
+    std::vector<casadi::DM> joint_max = {5.50, 3.40, 3.40, 5.70};
 
     casadi::DM is_coupled = 1;
 
@@ -175,20 +175,20 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].force_input[8] = uvms_sim.at(1).nonzeros()[8];
     uvms_world[agent_id].force_input[9] = uvms_sim.at(1).nonzeros()[9];
 
-    RCLCPP_INFO(
-        logger,
-        "Got commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
-        uvms_world[agent_id].force_input[0],
-        uvms_world[agent_id].force_input[1],
-        uvms_world[agent_id].force_input[2],
-        uvms_world[agent_id].force_input[3],
-        uvms_world[agent_id].force_input[4],
-        uvms_world[agent_id].force_input[5],
-        uvms_world[agent_id].force_input[6],
-        uvms_world[agent_id].force_input[7],
-        uvms_world[agent_id].force_input[8],
-        uvms_world[agent_id].force_input[9]);
-};
+//     RCLCPP_INFO(
+//         logger,
+//         "Got commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
+//         uvms_world[agent_id].force_input[0],
+//         uvms_world[agent_id].force_input[1],
+//         uvms_world[agent_id].force_input[2],
+//         uvms_world[agent_id].force_input[3],
+//         uvms_world[agent_id].force_input[4],
+//         uvms_world[agent_id].force_input[5],
+//         uvms_world[agent_id].force_input[6],
+//         uvms_world[agent_id].force_input[7],
+//         uvms_world[agent_id].force_input[8],
+//         uvms_world[agent_id].force_input[9]);
+ };
 
 std::vector<double> casadi_uvms::Dynamics::convertEulerToQuaternion(const double r, const double p, const double y)
 {
