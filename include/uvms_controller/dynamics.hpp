@@ -75,13 +75,15 @@ namespace casadi_uvms
             std::vector<int> velCommander;
             std::vector<int> accCommander;
             std::vector<int> effortCommander;
-            std::vector<double> sum_ki_buffer = std::vector<double>(6,0);
+            std::vector<double> sum_ki_buffer = std::vector<double>(10,0);
             std::vector<double> XF;
             std::vector<double> VF;
             std::vector<double> Kp;
             std::vector<double> Ki;
             std::vector<double> Kd;
-            std::vector<double> pid_commands  = std::vector<double>(6,0);
+            std::vector<double> pid_commands  = std::vector<double>(10,0);
+            std::vector<double> u_min;
+            std::vector<double> u_max;
             bool grabber_open;
         };
 
