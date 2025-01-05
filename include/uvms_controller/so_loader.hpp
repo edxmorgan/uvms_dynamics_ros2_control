@@ -31,7 +31,8 @@ namespace casadi_uvms
         Function uvms_dynamics; // uvms dynamics
         Function q2euler; //quaternion to euler function
         Function euler2q; //euler 2 quaternion function
-        Function forward_kinematics;
+        Function forward_kinematics; // forward kinematics
+        Function pid_controller; // whole-body PID controller
         FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);

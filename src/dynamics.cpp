@@ -23,6 +23,7 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
     fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
+    fun_service.pid_controller = fun_service.load_casadi_fun("pid", "libPID.so");
 
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
 };
@@ -40,13 +41,15 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
                                                               uvms_world[agent_id].current_position[6]);
     DM ned_z = -DM(uvms_world[agent_id].current_position[2]);
     DM generalized_coordinates = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
-                         DM(uvms_world[agent_id].current_position[1]),
-                         ned_z,
-                         DM(eul_states[0]),
-                         DM(eul_states[1]),
-                         DM(eul_states[2]),
-                         DM(uvms_world[agent_id].current_position[7]), DM(uvms_world[agent_id].current_position[8]),
-                         DM(uvms_world[agent_id].current_position[9]), DM(uvms_world[agent_id].current_position[10])});
+                                              DM(uvms_world[agent_id].current_position[1]),
+                                              ned_z,
+                                              DM(eul_states[0]),
+                                              DM(eul_states[1]),
+                                              DM(eul_states[2]),
+                                              DM(uvms_world[agent_id].current_position[7]),
+                                              DM(uvms_world[agent_id].current_position[8]),
+                                              DM(uvms_world[agent_id].current_position[9]),
+                                              DM(uvms_world[agent_id].current_position[10])});
 
     DM qned = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
                            DM(uvms_world[agent_id].current_position[1]),
@@ -68,16 +71,33 @@ controller_interface::return_type casadi_uvms::Dynamics::position_controller(
     const rclcpp::Clock::SharedPtr &clock,
     int &agent_id)
 {
-    // std::vector<double> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
-    //                                   uvms_world[agent_id].current_position.begin() + 7);
+    std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
+                                          uvms_world[agent_id].current_position.end());
 
-    // std::vector<double> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
-    //                                  uvms_world[agent_id].current_velocity.begin() + 6);
+    std::vector<casadi::DM> arm_velocity_(uvms_world[agent_id].current_velocity.end() - 5,
+                                          uvms_world[agent_id].current_velocity.end());
 
-    // std::vector<double> vehicle_state;
-    // vehicle_state.reserve(13);
-    // vehicle_state.insert(vehicle_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
-    // vehicle_state.insert(vehicle_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
+    std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
+                                          uvms_world[agent_id].current_position.begin() + 7);
+
+    std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
+                                         uvms_world[agent_id].current_velocity.begin() + 6);
+
+    std::vector<double> eul_states = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
+                                                              uvms_world[agent_id].current_position[4],
+                                                              uvms_world[agent_id].current_position[5],
+                                                              uvms_world[agent_id].current_position[6]);
+
+    std::vector<casadi::DM> uvms_position_state;
+    uvms_position_state.reserve(10);
+    uvms_position_state.insert(uvms_position_state.end(), vehicle_pose_.begin(), vehicle_pose_.begin() + 3);
+    uvms_position_state.insert(uvms_position_state.end(), eul_states.begin(), eul_states.end());
+    uvms_position_state.insert(uvms_position_state.end(), arm_position_.begin(), arm_position_.end() - 1);
+    
+    std::vector<casadi::DM> uvms_velocity_state;
+    uvms_velocity_state.reserve(10);
+    uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
+    uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
     // uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
     // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
