@@ -197,14 +197,14 @@ namespace uvms_controller
       //   return result;
       // };
 
-      // if ((*uvms_commands)->command_type == "position")
-      // {
-      //   result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      // };
-      // if (result == controller_interface::return_type::ERROR)
-      // {
-      //   return result;
-      // };
+      if ((*uvms_commands)->command_type == "position")
+      {
+        result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      };
+      if (result == controller_interface::return_type::ERROR)
+      {
+        return result;
+      };
 
       model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
 

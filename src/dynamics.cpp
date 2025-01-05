@@ -62,6 +62,45 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     return {T_i, qned};
 };
 
+controller_interface::return_type casadi_uvms::Dynamics::position_controller(
+    std::shared_ptr<CmdType> &uvms_commands,
+    const rclcpp::Logger &logger,
+    const rclcpp::Clock::SharedPtr &clock,
+    int &agent_id)
+{
+    // std::vector<double> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
+    //                                   uvms_world[agent_id].current_position.begin() + 7);
+
+    // std::vector<double> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
+    //                                  uvms_world[agent_id].current_velocity.begin() + 6);
+
+    // std::vector<double> vehicle_state;
+    // vehicle_state.reserve(13);
+    // vehicle_state.insert(vehicle_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    // vehicle_state.insert(vehicle_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
+
+    // uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    // uvms_world[agent_id].Kd = {2, 2, 2, 2, 2, 2};
+
+    // int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
+
+    // // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    // int start_index = agent_id * command_length_per_agent;
+    // int end_index = start_index + 6; // We are only interested in the first 6 elements (position + orientation)
+
+    // // Assign the first 6 elements (position + orientation) to uvms_world[agent_id].XF
+    // uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+
+    // vehicle_pose_pid_argument = {uvms_world[agent_id].Kp, uvms_world[agent_id].Ki, uvms_world[agent_id].Kd, uvms_world[agent_id].sum_ki_buffer, dt, vehicle_state, uvms_world[agent_id].XF};
+    // vehicle_pose_command = fun_service.vehicle_position_pid(vehicle_pose_pid_argument);
+
+    // std::vector<double> pid_commands = vehicle_pose_command.at(0).nonzeros();
+    // uvms_world[agent_id].sum_ki_buffer = vehicle_pose_command.at(1).nonzeros();
+    // std::copy(pid_commands.begin(), pid_commands.end(), uvms_world[agent_id].force_input.begin());
+    return controller_interface::return_type::OK;
+};
+
 controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     std::shared_ptr<CmdType> &uvms_commands,
     const rclcpp::Logger & /*logger*/,
@@ -137,7 +176,7 @@ void casadi_uvms::Dynamics::simulate(
 
     std::vector<casadi::DM> joint_max = {5.50, 3.40, 3.40, 5.70};
 
-    casadi::DM is_coupled = 1;
+    casadi::DM is_coupled = 0;
 
     uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, manipulator_parameters, vehicle_parameters, base_To, joint_min, joint_max};
 
