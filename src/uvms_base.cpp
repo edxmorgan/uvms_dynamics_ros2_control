@@ -188,18 +188,9 @@ namespace uvms_controller
         return result;
       };
 
-      // if ((*uvms_commands)->command_type == "velocity")
-      // {
-      //   result = model_dynamics.velocity_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      // };
-      // if (result == controller_interface::return_type::ERROR)
-      // {
-      //   return result;
-      // };
-
-      if ((*uvms_commands)->command_type == "position")
+      if ((*uvms_commands)->command_type == "pid")
       {
-        result = model_dynamics.position_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+        result = model_dynamics.pid_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
       };
       if (result == controller_interface::return_type::ERROR)
       {
@@ -300,8 +291,8 @@ namespace uvms_controller
     }
 
     // Ensure the command type is valid
-    if (uvms_commands->command_type != "position" &&
-        uvms_commands->command_type != "velocity" &&
+    if (uvms_commands->command_type != "pid" &&
+        uvms_commands->command_type != "optimal" &&
         uvms_commands->command_type != "force")
     {
       last_command_type_ = "";

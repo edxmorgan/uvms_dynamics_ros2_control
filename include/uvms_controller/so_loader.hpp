@@ -33,6 +33,8 @@ namespace casadi_uvms
         Function euler2q; //euler 2 quaternion function
         Function forward_kinematics; // forward kinematics
         Function pid_controller; // whole-body PID controller
+        Function uv_G; // restoring force acting on uv
+        Function uv_J; //NED Transform matrix
         FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);

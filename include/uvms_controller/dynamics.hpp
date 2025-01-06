@@ -40,14 +40,16 @@ namespace casadi_uvms
         std::vector<DM> uvms_simulate_argument;
         std::vector<DM> uvms_sim;
         std::vector<DM> joint_q_arg;
-        std::vector<DM> vehicle_pose_pid_argument;
-        std::vector<DM> vehicle_pose_command;
-        std::vector<DM> vehicle_vel_pid_argument;
-        std::vector<DM> vehicle_vel_command;
+        std::vector<DM> pid_argument;
+        std::vector<DM> pid_command;
         std::vector<double> next_states;
         std::vector<DM> quaternion_states;
         std::vector<DM> euler_states;
-
+        DM depth;
+        std::vector<DM> uv_G_argument;
+        std::vector<DM> uv_g;
+        std::vector<DM> uv_J_argument;
+        std::vector<DM> uv_J;
     public:
         struct Model
         {
@@ -107,13 +109,7 @@ namespace casadi_uvms
             const rclcpp::Clock::SharedPtr &clock,
             int &agent_id);
 
-        controller_interface::return_type position_controller(
-            std::shared_ptr<CmdType> &uvms_commands,
-            const rclcpp::Logger &logger,
-            const rclcpp::Clock::SharedPtr &clock,
-            int &agent_id);
-
-        controller_interface::return_type velocity_controller(
+        controller_interface::return_type pid_controller(
             std::shared_ptr<CmdType> &uvms_commands,
             const rclcpp::Logger &logger,
             const rclcpp::Clock::SharedPtr &clock,

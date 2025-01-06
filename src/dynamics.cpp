@@ -24,8 +24,9 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
     fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
     fun_service.pid_controller = fun_service.load_casadi_fun("pid", "libPID.so");
-
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
+    fun_service.uv_G = fun_service.load_casadi_fun("G_n", "libg.so");
+    fun_service.uv_J = fun_service.load_casadi_fun("J_", "libJk.so");
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -65,7 +66,7 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     return {T_i, qned};
 };
 
-controller_interface::return_type casadi_uvms::Dynamics::position_controller(
+controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     std::shared_ptr<CmdType> &uvms_commands,
     const rclcpp::Logger &logger,
     const rclcpp::Clock::SharedPtr &clock,
@@ -99,9 +100,29 @@ controller_interface::return_type casadi_uvms::Dynamics::position_controller(
     uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 15.0, 15.0, 20.0, 15.0};
-    uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
-    uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
+    // uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 2.0, 2.0, 2.0, 1.0};
+    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
+    // uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
+
+    // <param name="min_position">1.0</param>  <param name="max_position">5.5</param>
+    // <param name="min_position">0.01</param>  <param name="max_position">3.400</param>
+    // <param name="min_position">0.01</param>  <param name="max_position">3.400</param>
+    // <param name="min_position">0.01</param> <param name="max_position">5.70</param>
+
+    // provided gains --> 0
+    // uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 7.8516, 6.2398, 2.3119, 1.8381};
+    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
+    // uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 3.6438, 4.8058, 2.8552, 6.2847};
+
+    // provided gains --> 1
+    // uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 7.9175, 6.5515, 2.2020, 1.6566};
+    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
+    // uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 3.6910, 5.0202, 2.7693, 5.2407};
+
+    // provided gains --> 2
+    uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 7.9011, 6.4971, 2.1482, 1.6117};
+    uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
+    uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 3.5290, 5.0801, 2.7392, 5.8232};
 
     uvms_world[agent_id].u_min = {-10, -10, -10, -10, -10, -10, -2.83664, -0.629139, -0.518764, -0.54};
     uvms_world[agent_id].u_max = {10, 10, 10, 10, 10, 10, 2.83664, 0.629139, 0.518764, 0.54};
@@ -110,24 +131,43 @@ controller_interface::return_type casadi_uvms::Dynamics::position_controller(
 
     // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
     int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + 10; // We are only interested in the first 10 elements (6 vehicle commands + 4 joints commands)
+    int end_index = start_index + 10; // We are only interested in the first 10 elements (6 vehicle reference + 4 joints reference)
 
-    // Assign the first 6 elements (position + orientation) to uvms_world[agent_id].XF
+    // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
     uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
 
-    // vehicle_pose_pid_argument = {uvms_world[agent_id].Kp,
-    //                              uvms_world[agent_id].Ki,
-    //                              uvms_world[agent_id].Kd,
-    //                              uvms_world[agent_id].sum_ki_buffer,
-    //                              dt,
-    //                              vehicle_state,
-    //                              uvms_world[agent_id].XF};
+    std::vector<casadi::DM> blue_rg = {0., 0., 0.02};
+    std::vector<casadi::DM> blue_rb = {0, 0, 0};
+    std::vector<double> eul_states_kin = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
+                                                                  uvms_world[agent_id].current_position[4],
+                                                                  uvms_world[agent_id].current_position[5],
+                                                                  uvms_world[agent_id].current_position[6]);
 
-    // vehicle_pose_command = fun_service.pid_controller(vehicle_pose_pid_argument);
+    depth = casadi::DM(uvms_world[agent_id].current_position[2]);
+    uv_G_argument = {depth, casadi::DM(eul_states_kin), 112.81500000000001, 114.8, blue_rg, blue_rb};
+    uv_g = fun_service.uv_G(uv_G_argument);
 
-    // std::vector<double> pid_commands = vehicle_pose_command.at(0).nonzeros();
-    // uvms_world[agent_id].sum_ki_buffer = vehicle_pose_command.at(1).nonzeros();
-    // std::copy(pid_commands.begin(), pid_commands.end(), uvms_world[agent_id].force_input.begin());
+    uv_J_argument = {casadi::DM(eul_states_kin)};
+    uv_J = fun_service.uv_J(uv_J_argument);
+
+    pid_argument = {uvms_position_state,
+                    uvms_velocity_state,
+                    uvms_world[agent_id].XF,
+                    uv_g.at(0),
+                    uv_J.at(0),
+                    uvms_world[agent_id].Kp,
+                    uvms_world[agent_id].Ki,
+                    uvms_world[agent_id].Kd,
+                    uvms_world[agent_id].sum_ki_buffer,
+                    dt,
+                    uvms_world[agent_id].u_min, uvms_world[agent_id].u_max};
+    pid_command = fun_service.pid_controller(pid_argument);
+
+    std::vector<double> pid_commands = pid_command.at(0).nonzeros();
+    uvms_world[agent_id].sum_ki_buffer = pid_command.at(1).nonzeros();
+
+    std::copy(pid_commands.begin(), pid_commands.end(), uvms_world[agent_id].force_input.begin());
+
     return controller_interface::return_type::OK;
 };
 
