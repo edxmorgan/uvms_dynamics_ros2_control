@@ -209,25 +209,27 @@ namespace uvms_controller
         auto &transforms = realtime_frame_transform_publisher_->msg_.transforms;
         for (size_t i = 0; i < T_i.size(); ++i)
         {
-          auto &transform = transforms[i];
-          transform.header.stamp = time;
-          transform.header.frame_id = "base_link";
-          transform.child_frame_id = uvms.prefix + "joint_" + std::to_string(i);
+          auto &jointTransform = transforms[i];
+          jointTransform.header.stamp = time;
+          jointTransform.header.frame_id = "ned_frame";
+          jointTransform.child_frame_id = uvms.prefix + "joint_" + std::to_string(i);
 
-          transform.transform.translation.x = T_i[i].nonzeros()[0];
-          transform.transform.translation.y = T_i[i].nonzeros()[1];
-          transform.transform.translation.z = T_i[i].nonzeros()[2];
+          jointTransform.transform.translation.x = T_i[i].nonzeros()[0];
+          jointTransform.transform.translation.y = T_i[i].nonzeros()[1];
+          jointTransform.transform.translation.z = T_i[i].nonzeros()[2];
 
-          transform.transform.rotation.w = T_i[i].nonzeros()[3];
-          transform.transform.rotation.x = T_i[i].nonzeros()[4];
-          transform.transform.rotation.y = T_i[i].nonzeros()[5];
-          transform.transform.rotation.z = T_i[i].nonzeros()[6];
+          q_orig_joint.setW(T_i[i].nonzeros()[3]);
+          q_orig_joint.setX(T_i[i].nonzeros()[4]);
+          q_orig_joint.setY(T_i[i].nonzeros()[5]);
+          q_orig_joint.setZ(T_i[i].nonzeros()[6]);
+
+          jointTransform.transform.rotation = tf2::toMsg(q_orig_joint);
         }
 
         // Base transform
         auto &base_transform = transforms[T_i.size()]; // Use the next index after T_i.size()
         base_transform.header.stamp = time;
-        base_transform.header.frame_id = "base_link";
+        base_transform.header.frame_id = "ned_frame";
         base_transform.child_frame_id = uvms.prefix + "vehicle_base";
 
         // Access position from qned
@@ -235,10 +237,12 @@ namespace uvms_controller
         base_transform.transform.translation.y = qned.nonzeros()[1];
         base_transform.transform.translation.z = qned.nonzeros()[2];
 
-        base_transform.transform.rotation.w = qned.nonzeros()[3];
-        base_transform.transform.rotation.x = qned.nonzeros()[4];
-        base_transform.transform.rotation.y = qned.nonzeros()[5];
-        base_transform.transform.rotation.z = qned.nonzeros()[6];
+        q_orig_base.setW(qned.nonzeros()[3]);
+        q_orig_base.setX(qned.nonzeros()[4]);
+        q_orig_base.setY(qned.nonzeros()[5]);
+        q_orig_base.setZ(qned.nonzeros()[6]);
+
+        base_transform.transform.rotation = tf2::toMsg(q_orig_base);
 
         realtime_frame_transform_publisher_->unlockAndPublish();
       };

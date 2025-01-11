@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_msgs
   tf2
   uvms_interfaces
+  tf2_geometry_msgs
 )
 find_package(ament_cmake REQUIRED)
 find_package(backward_ros REQUIRED)

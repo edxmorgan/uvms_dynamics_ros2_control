@@ -40,13 +40,26 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
                                                               uvms_world[agent_id].current_position[4],
                                                               uvms_world[agent_id].current_position[5],
                                                               uvms_world[agent_id].current_position[6]);
-    DM ned_z = -DM(uvms_world[agent_id].current_position[2]);
+
+
+    q_orig_base.setW(uvms_world[agent_id].current_position[3]);
+    q_orig_base.setX(uvms_world[agent_id].current_position[4]);
+    q_orig_base.setY(uvms_world[agent_id].current_position[5]);
+    q_orig_base.setZ(uvms_world[agent_id].current_position[6]);
+
+    // Rotate the pose about X UPRIGHT
+    q_rot_base.setRPY(-M_PI, 0.0, 0.0);
+    q_new_base = q_orig_base * q_rot_base;
+    q_new_base.normalize();
+
+    tf2::Matrix3x3(q_new_base).getRPY(roll, pitch, yaw);
+
     DM generalized_coordinates = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
                                               DM(uvms_world[agent_id].current_position[1]),
-                                              ned_z,
-                                              DM(eul_states[0]),
-                                              DM(eul_states[1]),
-                                              DM(eul_states[2]),
+                                              DM(uvms_world[agent_id].current_position[2]),
+                                              DM(roll),
+                                              DM(pitch),
+                                              DM(yaw),
                                               DM(uvms_world[agent_id].current_position[7]),
                                               DM(uvms_world[agent_id].current_position[8]),
                                               DM(uvms_world[agent_id].current_position[9]),
@@ -54,11 +67,11 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
 
     DM qned = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
                            DM(uvms_world[agent_id].current_position[1]),
-                           ned_z,
-                           DM(uvms_world[agent_id].current_position[3]),
-                           DM(uvms_world[agent_id].current_position[4]),
-                           DM(uvms_world[agent_id].current_position[5]),
-                           DM(uvms_world[agent_id].current_position[6])});
+                           DM(uvms_world[agent_id].current_position[2]),
+                           DM(q_new_base.w()),
+                           DM(q_new_base.x()),
+                           DM(q_new_base.y()),
+                           DM(q_new_base.z())});
 
     std::vector<DM> fk_argumt = {generalized_coordinates, base_T};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);

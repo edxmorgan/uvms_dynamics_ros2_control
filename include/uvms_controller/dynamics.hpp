@@ -21,7 +21,7 @@
 #include "uvms_controller/so_loader.hpp"
 #include "controller_interface/controller_interface.hpp"
 #include "uvms_interfaces/msg/command.hpp"
-
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 namespace casadi_uvms
 {
@@ -50,6 +50,9 @@ namespace casadi_uvms
         std::vector<DM> uv_g;
         std::vector<DM> uv_J_argument;
         std::vector<DM> uv_J;
+
+        tf2::Quaternion q_orig_base, q_rot_base, q_new_base;
+        double roll, pitch, yaw;
     public:
         struct Model
         {

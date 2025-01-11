@@ -32,7 +32,7 @@
 #include "uvms_controller/so_loader.hpp"
 #include "uvms_controller/dynamics.hpp"
 
-
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include "realtime_tools/realtime_publisher.h"
 #include "tf2_msgs/msg/tf_message.hpp"
 
@@ -104,6 +104,8 @@ namespace uvms_controller
 
   private:
     // Helper functions
+    tf2::Quaternion q_orig_joint;
+    tf2::Quaternion q_orig_base;
     std::vector<double> get_state_values(const std::vector<int> &indices, std::size_t count);
     void set_command_values(const std::vector<int> &indices, const std::vector<double> &values, std::size_t count);
     controller_interface::return_type validate_uvms_commands(
