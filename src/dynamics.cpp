@@ -222,7 +222,7 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
                                          uvms_world[agent_id].force_input.end() - 1);
 
-    std::vector<casadi::DM> manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4, 1e-05, 1e-05, 1e-05, 1e-05,
+    std::vector<casadi::DM> manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4, 1e-06, 1e-06, 1e-06, 1e-06,
                                                       0, 0, 0, 0,
                                                       3, 2.3, 2.2, 0.3,
                                                       0, 0, 0, 0,
@@ -246,7 +246,7 @@ void casadi_uvms::Dynamics::simulate(
 
     std::vector<casadi::DM> joint_max = {5.50, 3.40, 3.40, 5.70};
 
-    casadi::DM is_coupled = 0;
+    casadi::DM is_coupled = 1;
 
     uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, manipulator_parameters, vehicle_parameters, base_To, joint_min, joint_max};
 
