@@ -40,7 +40,7 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     q_orig_base.setX(uvms_world[agent_id].current_position[4]);
     q_orig_base.setY(uvms_world[agent_id].current_position[5]);
     q_orig_base.setZ(uvms_world[agent_id].current_position[6]);
-
+    q_orig_base.normalize();
     double x = uvms_world[agent_id].current_position[0];
     double y = uvms_world[agent_id].current_position[1];
     double z = uvms_world[agent_id].current_position[2];
