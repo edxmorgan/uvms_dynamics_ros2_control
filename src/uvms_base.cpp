@@ -96,7 +96,7 @@ namespace uvms_controller
               frame_transform_publisher_);
 
       auto &frame_transform_message = realtime_frame_transform_publisher_->msg_;
-      frame_transform_message.transforms.resize(6);
+      frame_transform_message.transforms.resize(5);
     }
     catch (const std::exception &e)
     {
@@ -211,7 +211,7 @@ namespace uvms_controller
         {
           auto &jointTransform = transforms[i];
           jointTransform.header.stamp = time;
-          jointTransform.header.frame_id = "ned_frame";
+          jointTransform.header.frame_id = uvms.prefix + "base_link";
           jointTransform.child_frame_id = uvms.prefix + "joint_" + std::to_string(i);
 
           jointTransform.transform.translation.x = T_i[i].nonzeros()[0];
@@ -225,25 +225,6 @@ namespace uvms_controller
 
           jointTransform.transform.rotation = tf2::toMsg(q_orig_joint);
         }
-
-        // Base transform
-        auto &base_transform = transforms[T_i.size()]; // Use the next index after T_i.size()
-        base_transform.header.stamp = time;
-        base_transform.header.frame_id = "ned_frame";
-        base_transform.child_frame_id = uvms.prefix + "vehicle_base";
-
-        // Access position from qned
-        base_transform.transform.translation.x = qned.nonzeros()[0];
-        base_transform.transform.translation.y = qned.nonzeros()[1];
-        base_transform.transform.translation.z = qned.nonzeros()[2];
-
-        q_orig_base.setW(qned.nonzeros()[3]);
-        q_orig_base.setX(qned.nonzeros()[4]);
-        q_orig_base.setY(qned.nonzeros()[5]);
-        q_orig_base.setZ(qned.nonzeros()[6]);
-
-        base_transform.transform.rotation = tf2::toMsg(q_orig_base);
-
         realtime_frame_transform_publisher_->unlockAndPublish();
       };
 

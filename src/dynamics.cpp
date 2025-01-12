@@ -41,39 +41,32 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     q_orig_base.setY(uvms_world[agent_id].current_position[5]);
     q_orig_base.setZ(uvms_world[agent_id].current_position[6]);
 
-    // Rotate the pose about X UPRIGHT
-    q_rot_base.setRPY(M_PI, 0.0, 0.0);
-    q_new_base = q_orig_base * q_rot_base;
-    q_new_base.normalize();
-
-    tf2::Matrix3x3(q_new_base).getRPY(roll, pitch, yaw);
-
     double x = uvms_world[agent_id].current_position[0];
-    double y = -uvms_world[agent_id].current_position[1];
+    double y = uvms_world[agent_id].current_position[1];
     double z = uvms_world[agent_id].current_position[2];
-    DM generalized_coordinates = DM::vertcat({DM(x),
-                                              DM(y),
-                                              DM(z),
-                                              DM(roll),
-                                              DM(pitch),
-                                              DM(yaw),
+    DM state_position = DM::vertcat({DM(x),
+                                     DM(y),
+                                     DM(z),
+                                     DM(q_orig_base.w()),
+                                     DM(q_orig_base.x()),
+                                     DM(q_orig_base.y()),
+                                     DM(q_orig_base.z())});
+
+    DM generalized_coordinates = DM::vertcat({0.0,
+                                              0.0,
+                                              0.0,
+                                              0.0,
+                                              0.0,
+                                              0.0,
                                               DM(uvms_world[agent_id].current_position[7]),
                                               DM(uvms_world[agent_id].current_position[8]),
                                               DM(uvms_world[agent_id].current_position[9]),
                                               DM(uvms_world[agent_id].current_position[10])});
 
-    DM qned = DM::vertcat({DM(x),
-                           DM(y),
-                           DM(z),
-                           DM(q_new_base.w()),
-                           DM(q_new_base.x()),
-                           DM(q_new_base.y()),
-                           DM(q_new_base.z())});
-
     std::vector<DM> fk_argumt = {generalized_coordinates, base_T};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
 
-    return {T_i, qned};
+    return {T_i, state_position};
 };
 
 controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
