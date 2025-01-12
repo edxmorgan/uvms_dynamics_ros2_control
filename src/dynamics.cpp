@@ -36,27 +36,24 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
 {
     DM base_T = DM::vertcat({DM(3.142), DM(0.000), DM(0.000), DM(0.140), DM(0.000), DM(-0.120)});
 
-    std::vector<double> eul_states = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
-                                                              uvms_world[agent_id].current_position[4],
-                                                              uvms_world[agent_id].current_position[5],
-                                                              uvms_world[agent_id].current_position[6]);
-
-
     q_orig_base.setW(uvms_world[agent_id].current_position[3]);
     q_orig_base.setX(uvms_world[agent_id].current_position[4]);
     q_orig_base.setY(uvms_world[agent_id].current_position[5]);
     q_orig_base.setZ(uvms_world[agent_id].current_position[6]);
 
     // Rotate the pose about X UPRIGHT
-    q_rot_base.setRPY(-M_PI, 0.0, 0.0);
+    q_rot_base.setRPY(M_PI, 0.0, 0.0);
     q_new_base = q_orig_base * q_rot_base;
     q_new_base.normalize();
 
     tf2::Matrix3x3(q_new_base).getRPY(roll, pitch, yaw);
 
-    DM generalized_coordinates = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
-                                              DM(uvms_world[agent_id].current_position[1]),
-                                              DM(uvms_world[agent_id].current_position[2]),
+    double x = uvms_world[agent_id].current_position[0];
+    double y = -uvms_world[agent_id].current_position[1];
+    double z = uvms_world[agent_id].current_position[2];
+    DM generalized_coordinates = DM::vertcat({DM(x),
+                                              DM(y),
+                                              DM(z),
                                               DM(roll),
                                               DM(pitch),
                                               DM(yaw),
@@ -65,9 +62,9 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
                                               DM(uvms_world[agent_id].current_position[9]),
                                               DM(uvms_world[agent_id].current_position[10])});
 
-    DM qned = DM::vertcat({DM(uvms_world[agent_id].current_position[0]),
-                           DM(uvms_world[agent_id].current_position[1]),
-                           DM(uvms_world[agent_id].current_position[2]),
+    DM qned = DM::vertcat({DM(x),
+                           DM(y),
+                           DM(z),
                            DM(q_new_base.w()),
                            DM(q_new_base.x()),
                            DM(q_new_base.y()),
