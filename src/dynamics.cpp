@@ -249,9 +249,9 @@ void casadi_uvms::Dynamics::simulate(
 
     std::vector<casadi::DM> joint_max = {5.50, 3.40, 3.40, 5.70};
 
-    casadi::DM is_coupled = 1;
+    casadi::DM is_coupled = 0;
 
-    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, manipulator_parameters, vehicle_parameters, base_To, joint_min, joint_max};
+    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, vehicle_parameters, manipulator_parameters, base_To, joint_min, joint_max};
 
     uvms_sim = fun_service.uvms_dynamics(uvms_simulate_argument);
 

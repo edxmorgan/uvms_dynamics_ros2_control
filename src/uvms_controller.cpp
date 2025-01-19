@@ -80,6 +80,7 @@ namespace uvms_controller
       uvms_agent.id = idx;
 
       RCLCPP_INFO(get_node()->get_logger(), "Agent --> %s", agent_.c_str());
+      RCLCPP_INFO(get_node()->get_logger(), "Agent id--> %d", uvms_agent.id);
 ////////////////////////////////////////////////
       if (params_.agents_map.at(agent_).prefix.empty())
       {

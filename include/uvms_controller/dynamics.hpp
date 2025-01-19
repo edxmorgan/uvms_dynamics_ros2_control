@@ -53,6 +53,7 @@ namespace casadi_uvms
 
         tf2::Quaternion q_orig_base, q_rot_base, q_new_base;
         double roll, pitch, yaw;
+
     public:
         struct Model
         {
@@ -60,18 +61,18 @@ namespace casadi_uvms
             std::string prefix;
             std::vector<double> pose_rot;
             std::vector<double> pose_trl;
-            
+
             std::vector<double> current_position = std::vector<double>(12);
             std::vector<double> prev_position = std::vector<double>(12);
             std::vector<double> next_position = std::vector<double>(12);
 
-            std::vector<double> current_velocity = std::vector<double>(11,0);
-            std::vector<double> prev_velocity = std::vector<double>(11,0);
-            std::vector<double> next_velocity = std::vector<double>(11,0);
-            std::vector<double> force_input = std::vector<double>(11,0);
+            std::vector<double> current_velocity = std::vector<double>(11, 0);
+            std::vector<double> prev_velocity = std::vector<double>(11, 0);
+            std::vector<double> next_velocity = std::vector<double>(11, 0);
+            std::vector<double> force_input = std::vector<double>(11, 0);
 
             std::vector<double> model_p = std::vector<double>(12); // model parameters
-            std::vector<double> flow_velocity = std::vector<double>(6,0);
+            std::vector<double> flow_velocity = std::vector<double>(6, 0);
             std::vector<double> uvms_base_TF_;
             std::vector<int> poseSubscriber;
             std::vector<int> poseCommander;
@@ -80,16 +81,17 @@ namespace casadi_uvms
             std::vector<int> velCommander;
             std::vector<int> accCommander;
             std::vector<int> effortCommander;
-            std::vector<double> sum_ki_buffer = std::vector<double>(10,0);
+            std::vector<double> sum_ki_buffer = std::vector<double>(10, 0);
             std::vector<double> XF;
             std::vector<double> VF;
             std::vector<double> Kp;
             std::vector<double> Ki;
             std::vector<double> Kd;
-            std::vector<double> pid_commands  = std::vector<double>(10,0);
+            std::vector<double> pid_commands = std::vector<double>(10, 0);
             std::vector<double> u_min;
             std::vector<double> u_max;
             bool grabber_open;
+            bool initialised_real_state = true;
         };
 
         std::vector<Model> uvms_world{}; // vector for future enhancement

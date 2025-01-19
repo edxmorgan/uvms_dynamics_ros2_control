@@ -173,11 +173,45 @@ namespace uvms_controller
 
     for (auto &uvms : model_dynamics.uvms_world)
     {
-      uvms.prev_position = uvms.current_position;
-      uvms.prev_velocity = uvms.current_velocity;
+      if (uvms.initialised_real_state)
+      {
+        // 1) Find the uvms in the vector that has id == 0 and prefix == robot_real_
+        auto it = std::find_if(
+            model_dynamics.uvms_world.begin(),
+            model_dynamics.uvms_world.end(),
+            [&](const casadi_uvms::Dynamics::Model &candidate)
+            {
+              return (candidate.id == 0 && candidate.prefix == "robot_real_");
+            });
 
-      uvms.current_position = get_state_values(uvms.poseSubscriber, 12);
-      uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
+        // 2) If found, use it to update the current uvms
+        if (it != model_dynamics.uvms_world.end())
+        {
+          RCLCPP_INFO(get_node()->get_logger(), " %s found real uvms object and initialised with real states into sim", uvms.prefix.c_str());
+          uvms.prev_position = it->current_position;
+          uvms.prev_velocity = it->current_velocity;
+
+          uvms.current_position = get_state_values(it->poseSubscriber, 12);
+          uvms.current_velocity = get_state_values(it->velSubscriber, 11);
+        }
+        else
+        {
+          RCLCPP_ERROR(get_node()->get_logger(), " %s  did not find real uvms object. Real states refused to be initialised into sim", uvms.prefix.c_str());
+          // Handle the case where you did not find an appropriate uvms
+          // (e.g., log an error or provide fallback behavior)
+        }
+
+        // Don’t forget the semicolon!
+        uvms.initialised_real_state = false;
+      }
+      else
+      {
+        uvms.prev_position = uvms.current_position;
+        uvms.prev_velocity = uvms.current_velocity;
+
+        uvms.current_position = get_state_values(uvms.poseSubscriber, 12);
+        uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
+      }
 
       if ((*uvms_commands)->command_type == "force")
       {
@@ -200,7 +234,7 @@ namespace uvms_controller
       model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
 
       std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
-      
+
       std::vector<DM> T_i = fw_result.first;
       DM qned = fw_result.second;
 
