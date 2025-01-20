@@ -225,11 +225,14 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
                                          uvms_world[agent_id].force_input.end() - 1);
 
-    std::vector<casadi::DM> manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4, 1e-06, 1e-06, 1e-06, 1e-06,
+    std::vector<casadi::DM> manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4,
+                                                      1e-06, 1e-06, 1e-06, 1e-06,
                                                       0, 0, 0, 0,
-                                                      3, 2.3, 2.2, 0.3,
+                                                      2.5, 2.6, 1.7, 0.2,
                                                       0, 0, 0, 0,
-                                                      3, 1.8, 1, 1.15};
+                                                      4.0, 1.9, 1.3, 1.0};
+                                                      // joint b calibrated
+                                                      // joint c in works
 
     std::vector<casadi::DM> vehicle_parameters = {1.15000e+01, 1.12815e+02, 1.14800e+02, 0.00000e+00,
                                                   0.00000e+00, 2.00000e-02, 0.00000e+00, 0.00000e+00,
@@ -309,19 +312,19 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].next_acceleration[8] = uvms_sim.at(2).nonzeros()[8];
     uvms_world[agent_id].next_acceleration[9] = uvms_sim.at(2).nonzeros()[9];
 
-        // RCLCPP_INFO(
-        //     logger,
-        //     "Got velocity commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
-        //     uvms_world[agent_id].next_velocity[0],
-        //     uvms_world[agent_id].next_velocity[1],
-        //     uvms_world[agent_id].next_velocity[2],
-        //     uvms_world[agent_id].next_velocity[3],
-        //     uvms_world[agent_id].next_velocity[4],
-        //     uvms_world[agent_id].next_velocity[5],
-        //     uvms_world[agent_id].next_velocity[6],
-        //     uvms_world[agent_id].next_velocity[7],
-        //     uvms_world[agent_id].next_velocity[8],
-        //     uvms_world[agent_id].next_velocity[9]);
+    // RCLCPP_INFO(
+    //     logger,
+    //     "Got velocity commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
+    //     uvms_world[agent_id].next_velocity[0],
+    //     uvms_world[agent_id].next_velocity[1],
+    //     uvms_world[agent_id].next_velocity[2],
+    //     uvms_world[agent_id].next_velocity[3],
+    //     uvms_world[agent_id].next_velocity[4],
+    //     uvms_world[agent_id].next_velocity[5],
+    //     uvms_world[agent_id].next_velocity[6],
+    //     uvms_world[agent_id].next_velocity[7],
+    //     uvms_world[agent_id].next_velocity[8],
+    //     uvms_world[agent_id].next_velocity[9]);
 };
 
 std::vector<double> casadi_uvms::Dynamics::convertEulerToQuaternion(const double r, const double p, const double y)
