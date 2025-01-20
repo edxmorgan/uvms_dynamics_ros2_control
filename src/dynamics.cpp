@@ -297,19 +297,31 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].force_input[8] = uvms_sim.at(1).nonzeros()[8];
     uvms_world[agent_id].force_input[9] = uvms_sim.at(1).nonzeros()[9];
 
-    //     RCLCPP_INFO(
-    //         logger,
-    //         "Got commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
-    //         uvms_world[agent_id].force_input[0],
-    //         uvms_world[agent_id].force_input[1],
-    //         uvms_world[agent_id].force_input[2],
-    //         uvms_world[agent_id].force_input[3],
-    //         uvms_world[agent_id].force_input[4],
-    //         uvms_world[agent_id].force_input[5],
-    //         uvms_world[agent_id].force_input[6],
-    //         uvms_world[agent_id].force_input[7],
-    //         uvms_world[agent_id].force_input[8],
-    //         uvms_world[agent_id].force_input[9]);
+    uvms_world[agent_id].next_acceleration[0] = uvms_sim.at(2).nonzeros()[0];
+    uvms_world[agent_id].next_acceleration[1] = uvms_sim.at(2).nonzeros()[1];
+    uvms_world[agent_id].next_acceleration[2] = uvms_sim.at(2).nonzeros()[2];
+    uvms_world[agent_id].next_acceleration[3] = uvms_sim.at(2).nonzeros()[3];
+    uvms_world[agent_id].next_acceleration[4] = uvms_sim.at(2).nonzeros()[4];
+    uvms_world[agent_id].next_acceleration[5] = uvms_sim.at(2).nonzeros()[5];
+
+    uvms_world[agent_id].next_acceleration[6] = uvms_sim.at(2).nonzeros()[6];
+    uvms_world[agent_id].next_acceleration[7] = uvms_sim.at(2).nonzeros()[7];
+    uvms_world[agent_id].next_acceleration[8] = uvms_sim.at(2).nonzeros()[8];
+    uvms_world[agent_id].next_acceleration[9] = uvms_sim.at(2).nonzeros()[9];
+
+        // RCLCPP_INFO(
+        //     logger,
+        //     "Got velocity commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
+        //     uvms_world[agent_id].next_velocity[0],
+        //     uvms_world[agent_id].next_velocity[1],
+        //     uvms_world[agent_id].next_velocity[2],
+        //     uvms_world[agent_id].next_velocity[3],
+        //     uvms_world[agent_id].next_velocity[4],
+        //     uvms_world[agent_id].next_velocity[5],
+        //     uvms_world[agent_id].next_velocity[6],
+        //     uvms_world[agent_id].next_velocity[7],
+        //     uvms_world[agent_id].next_velocity[8],
+        //     uvms_world[agent_id].next_velocity[9]);
 };
 
 std::vector<double> casadi_uvms::Dynamics::convertEulerToQuaternion(const double r, const double p, const double y)

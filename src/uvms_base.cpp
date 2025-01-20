@@ -197,11 +197,13 @@ namespace uvms_controller
         else
         {
           RCLCPP_ERROR(get_node()->get_logger(), " %s  did not find real uvms object. Real states refused to be initialised into sim", uvms.prefix.c_str());
-          // Handle the case where you did not find an appropriate uvms
-          // (e.g., log an error or provide fallback behavior)
-        }
+          // log an error or provide fallback behavior
+          uvms.prev_position = uvms.current_position;
+          uvms.prev_velocity = uvms.current_velocity;
 
-        // Don’t forget the semicolon!
+          uvms.current_position = get_state_values(uvms.poseSubscriber, 12);
+          uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
+        }
         uvms.initialised_real_state = false;
       }
       else
@@ -265,6 +267,7 @@ namespace uvms_controller
       set_command_values(uvms.poseCommander, uvms.next_position, 12);
       set_command_values(uvms.velCommander, uvms.next_velocity, 11);
       set_command_values(uvms.effortCommander, uvms.force_input, 11);
+      set_command_values(uvms.accCommander, uvms.next_acceleration, 11);
     }
 
     return controller_interface::return_type::OK;

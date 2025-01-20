@@ -233,7 +233,7 @@ namespace uvms_controller
         {
           std::string interface_string = std::string(uvms_joint_name_) + "/" + std::string(acceleration_command_interface_);
           command_interface_types_.push_back(interface_string);
-          uvms_agent.velCommander.push_back(command_index);
+          uvms_agent.accCommander.push_back(command_index);
           RCLCPP_INFO(get_node()->get_logger(), "uvms_acceleration_command_interface_ Registered [%d] --> %s", command_index++, interface_string.c_str());
         }
 

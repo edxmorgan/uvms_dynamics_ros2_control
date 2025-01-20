@@ -69,6 +69,7 @@ namespace casadi_uvms
             std::vector<double> current_velocity = std::vector<double>(11, 0);
             std::vector<double> prev_velocity = std::vector<double>(11, 0);
             std::vector<double> next_velocity = std::vector<double>(11, 0);
+            std::vector<double> next_acceleration = std::vector<double>(11, 0);
             std::vector<double> force_input = std::vector<double>(11, 0);
 
             std::vector<double> model_p = std::vector<double>(12); // model parameters
