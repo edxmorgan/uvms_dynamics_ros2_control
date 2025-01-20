@@ -35,6 +35,8 @@ namespace casadi_uvms
         Function pid_controller; // whole-body PID controller
         Function uv_G; // restoring force acting on uv
         Function uv_J; //NED Transform matrix
+        Function uvms_H; // uvms inertia matrix dynamics
+        Function uvms_B; // uvms bias vector dynamics
         FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);

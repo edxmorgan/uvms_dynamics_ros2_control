@@ -27,11 +27,14 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
     fun_service.uv_G = fun_service.load_casadi_fun("G_n", "libg.so");
     fun_service.uv_J = fun_service.load_casadi_fun("J_", "libJk.so");
+
+    fun_service.uvms_H = fun_service.load_casadi_fun("UVMS_H_use_coupled", "libUVMS_H.so");
+    fun_service.uvms_B = fun_service.load_casadi_fun("UVMS_B_use_coupled", "libUVMS_B.so");
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
-    const rclcpp::Logger &logger,
-    const rclcpp::Clock::SharedPtr &clock,
+    const rclcpp::Logger &/*logger*/,
+    const rclcpp::Clock::SharedPtr &/*clock*/,
     int &agent_id)
 {
     DM base_T = DM::vertcat({DM(3.142), DM(0.000), DM(0.000), DM(0.140), DM(0.000), DM(-0.120)});
@@ -71,8 +74,8 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
 
 controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     std::shared_ptr<CmdType> &uvms_commands,
-    const rclcpp::Logger &logger,
-    const rclcpp::Clock::SharedPtr &clock,
+    const rclcpp::Logger &/*logger*/,
+    const rclcpp::Clock::SharedPtr &/*clock*/,
     int &agent_id)
 {
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
@@ -103,29 +106,9 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    // uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 2.0, 2.0, 2.0, 1.0};
-    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
-    // uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
-
-    // <param name="min_position">1.0</param>  <param name="max_position">5.5</param>
-    // <param name="min_position">0.01</param>  <param name="max_position">3.400</param>
-    // <param name="min_position">0.01</param>  <param name="max_position">3.400</param>
-    // <param name="min_position">0.01</param> <param name="max_position">5.70</param>
-
-    // provided gains --> 0
-    // uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 7.8516, 6.2398, 2.3119, 1.8381};
-    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
-    // uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 3.6438, 4.8058, 2.8552, 6.2847};
-
-    // provided gains --> 1
-    // uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 7.9175, 6.5515, 2.2020, 1.6566};
-    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
-    // uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 3.6910, 5.0202, 2.7693, 5.2407};
-
-    // provided gains --> 2
-    uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 7.9011, 6.4971, 2.1482, 1.6117};
-    uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
-    uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 3.5290, 5.0801, 2.7392, 5.8232};
+    uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 2.0, 2.0, 2.0, 1.0};
+    uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
+    uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
 
     uvms_world[agent_id].u_min = {-10, -10, -10, -10, -10, -10, -2.83664, -0.629139, -0.518764, -0.54};
     uvms_world[agent_id].u_max = {10, 10, 10, 10, 10, 10, 2.83664, 0.629139, 0.518764, 0.54};
@@ -192,8 +175,8 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
 };
 
 void casadi_uvms::Dynamics::simulate(
-    const rclcpp::Logger &logger,
-    const rclcpp::Clock::SharedPtr &clock,
+    const rclcpp::Logger &/*logger*/,
+    const rclcpp::Clock::SharedPtr &/*clock*/,
     int &agent_id)
 {
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
