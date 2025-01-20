@@ -231,8 +231,6 @@ void casadi_uvms::Dynamics::simulate(
                                                       2.5, 2.6, 1.7, 0.2,
                                                       0, 0, 0, 0,
                                                       4.0, 1.9, 1.3, 1.0};
-                                                      // joint b calibrated
-                                                      // joint c in works
 
     std::vector<casadi::DM> vehicle_parameters = {1.15000e+01, 1.12815e+02, 1.14800e+02, 0.00000e+00,
                                                   0.00000e+00, 2.00000e-02, 0.00000e+00, 0.00000e+00,
