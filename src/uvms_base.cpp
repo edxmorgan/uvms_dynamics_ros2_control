@@ -217,7 +217,7 @@ namespace uvms_controller
 
       if ((*uvms_commands)->command_type == "force")
       {
-        result = model_dynamics.force_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+        result = model_dynamics.force_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
       };
       if (result == controller_interface::return_type::ERROR)
       {
@@ -226,16 +226,27 @@ namespace uvms_controller
 
       if ((*uvms_commands)->command_type == "pid")
       {
-        result = model_dynamics.pid_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+        result = model_dynamics.pid_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
       };
       if (result == controller_interface::return_type::ERROR)
       {
         return result;
       };
 
-      model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
 
-      std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), uvms.id);
+      if ((*uvms_commands)->command_type == "optimal")
+      {
+        result = model_dynamics.optimal_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
+      };
+      if (result == controller_interface::return_type::ERROR)
+      {
+        return result;
+      };
+
+
+      model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
+
+      std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
 
       std::vector<DM> T_i = fw_result.first;
       DM qned = fw_result.second;

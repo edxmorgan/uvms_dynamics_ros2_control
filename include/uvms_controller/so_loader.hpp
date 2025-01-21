@@ -34,9 +34,11 @@ namespace casadi_uvms
         Function forward_kinematics; // forward kinematics
         Function pid_controller; // whole-body PID controller
         Function uv_G; // restoring force acting on uv
-        Function uv_J; //NED Transform matrix
+        Function uv_J_ned; //NED Transform matrix
         Function uvms_H; // uvms inertia matrix dynamics
         Function uvms_B; // uvms bias vector dynamics
+        Function uvms_J_ned; //NED Transform matrix for whole-body
+        Function uvms_optimal_controller; // whole-body optimal controller
         FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);
