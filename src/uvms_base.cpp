@@ -196,7 +196,7 @@ namespace uvms_controller
         }
         else
         {
-          RCLCPP_ERROR(get_node()->get_logger(), " %s  did not find real uvms object. Real states refused to be initialised into sim", uvms.prefix.c_str());
+          RCLCPP_INFO(get_node()->get_logger(), " %s  did not find real uvms object. Real states refused to be initialised into sim", uvms.prefix.c_str());
           // log an error or provide fallback behavior
           uvms.prev_position = uvms.current_position;
           uvms.prev_velocity = uvms.current_velocity;
@@ -205,6 +205,24 @@ namespace uvms_controller
           uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
         }
         uvms.initialised_real_state = false;
+
+        RCLCPP_INFO(get_node()->get_logger(), "uvms controller size %lu", uvms.current_position.size());
+
+        RCLCPP_INFO(get_node()->get_logger(), "uvms controller initialized with %f %f %f %f %f %f %f  %f %f %f %f %f", 
+        uvms.current_position[0],
+        uvms.current_position[1],
+        uvms.current_position[2],
+        uvms.current_position[3],
+        uvms.current_position[4],
+        uvms.current_position[5],
+        uvms.current_position[6],
+
+        uvms.current_position[7],
+        uvms.current_position[8],
+        uvms.current_position[9],
+        uvms.current_position[10],
+        uvms.current_position[11]
+        );
       }
       else
       {
@@ -233,7 +251,6 @@ namespace uvms_controller
         return result;
       };
 
-
       if ((*uvms_commands)->command_type == "optimal")
       {
         result = model_dynamics.optimal_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
@@ -242,7 +259,6 @@ namespace uvms_controller
       {
         return result;
       };
-
 
       model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
 
@@ -318,7 +334,7 @@ namespace uvms_controller
 
       // Create a default command
       auto default_command = std::make_shared<casadi_uvms::CmdType>();
-      default_command->input.data.resize(expected_command_size, 0.0);
+      default_command->force.data.resize(expected_command_size, 0.0);
       default_command->command_type = "force";
       uvms_commands = default_command;
     }
@@ -346,14 +362,48 @@ namespace uvms_controller
       last_command_type_ = uvms_commands->command_type;
     }
 
-    if (uvms_commands->input.data.size() != expected_command_size)
+    bool size_mismatch = false;
+    std::string mismatched_field;
+
+    if (uvms_commands->command_type == "force" && uvms_commands->force.data.size() != expected_command_size)
+    {
+      size_mismatch = true;
+      mismatched_field = "force";
+    }
+    else if (uvms_commands->command_type == "pid" && uvms_commands->pose.data.size() != expected_command_size)
+    {
+      size_mismatch = true;
+      mismatched_field = "pose";
+    }
+    else if (uvms_commands->command_type == "optimal")
+    {
+      if (uvms_commands->pose.data.size() != expected_command_size)
+      {
+        size_mismatch = true;
+        mismatched_field = "pose";
+      }
+      else if (uvms_commands->twist.data.size() != expected_command_size)
+      {
+        size_mismatch = true;
+        mismatched_field = "twist";
+      }
+      else if (uvms_commands->acceleration.data.size() != expected_command_size)
+      {
+        size_mismatch = true;
+        mismatched_field = "acceleration";
+      }
+    }
+
+    if (size_mismatch)
     {
       RCLCPP_ERROR_THROTTLE(
           logger, *clock, 1000,
-          "Command type '%s' expects %zu elements, but received %zu",
+          "Command type '%s' expects %zu elements in '%s', but received %zu.",
           uvms_commands->command_type.c_str(),
           expected_command_size,
-          uvms_commands->input.data.size());
+          mismatched_field.c_str(),
+          uvms_commands->force.data.size()
+      );
 
       return controller_interface::return_type::ERROR;
     }

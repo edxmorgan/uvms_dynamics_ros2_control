@@ -109,11 +109,11 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
 {
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 10 elements (vehicle + manipulator)
 
-    // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    // Calculate the starting index for the current agent's data in the uvms_commands
     int start_index = agent_id * command_length_per_agent;
     int end_index = start_index + command_length_per_agent;
 
-    uvms_world[agent_id].force_input.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+    uvms_world[agent_id].force_input.assign(uvms_commands->force.data.begin() + start_index, uvms_commands->force.data.begin() + end_index);
 
     return controller_interface::return_type::OK;
 };
@@ -163,12 +163,12 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
 
     int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
 
-    // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    // Calculate the starting index for the current agent's data in the uvms_commands
     int start_index = agent_id * command_length_per_agent;
     int end_index = start_index + 10; // We are only interested in the first 10 elements (6 vehicle reference + 4 joints reference)
 
     // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index);
 
     std::vector<casadi::DM> blue_rg = {0., 0., 0.02};
     std::vector<casadi::DM> blue_rb = {0, 0, 0};
@@ -247,12 +247,14 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
 
     int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
 
-    // Calculate the starting index for the current agent's data in the uvms_commands->input.data array
+    // Calculate the starting index for the current agent's data in the uvms_commands array
     int start_index = agent_id * command_length_per_agent;
     int end_index = start_index + 10; // We are only interested in the first 10 elements (6 vehicle reference + 4 joints reference)
 
     // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->input.data.begin() + start_index, uvms_commands->input.data.begin() + end_index);
+    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index);
+    uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index);
+    uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index);
 
     std::vector<double> eul_states_kin = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
                                                                   uvms_world[agent_id].current_position[4],
@@ -279,8 +281,8 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     uvms_J_REF_ned = fun_service.uvms_J_ned(uvms_J_REF_ned_argument);
 
     // Define a1_v and a2_v as vectors of casadi::DM
-    std::vector<casadi::DM> a1_v = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    std::vector<casadi::DM> a2_v = {0.000001, 0.000001, 0.000001, 0.000001, 0.000001, 0.000001, 0.000001, 0.000001, 0.000001, 0.000001};
+    std::vector<casadi::DM> a1_v = {100, 100, 100, 200, 200, 100, 200, 200, 200, 200};
+    std::vector<casadi::DM> a2_v = {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.000001};
 
     // Initialize a12_v and ac_v with the same size as a1_v and a2_v
     std::vector<casadi::DM> a12_v(a1_v.size());
@@ -328,9 +330,8 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
         uvms_H_.at(0),
         uvms_B_.at(0),
         uvms_world[agent_id].XF, // q_ref
-        uvms_world[agent_id].VF, // q_ref
-        uvms_world[agent_id].AF, // q_ref
-
+        uvms_world[agent_id].VF, // dq_ref
+        uvms_world[agent_id].AF, // ddq_ref
         uvms_J_ned.at(0),
         uvms_J_REF_ned.at(0),
         time_seconds,
