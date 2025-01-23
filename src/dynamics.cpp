@@ -33,7 +33,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.uvms_J_ned = fun_service.load_casadi_fun("J_uvms", "libJ_uvms.so");
     fun_service.uvms_optimal_controller = fun_service.load_casadi_fun("opt_cont", "libOptController.so");
 
-    is_coupled = 1;
+    is_coupled = 0;
 
     manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4,
                               1e-06, 1e-06, 1e-06, 1e-06,
