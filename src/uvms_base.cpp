@@ -206,9 +206,9 @@ namespace uvms_controller
         }
         uvms.initialised_real_state = false;
 
-        RCLCPP_INFO(get_node()->get_logger(), "uvms controller size %lu", uvms.current_position.size());
+        RCLCPP_INFO(get_node()->get_logger(), "uvms pose size %lu", uvms.current_position.size());
 
-        RCLCPP_INFO(get_node()->get_logger(), "uvms controller initialized with %f %f %f %f %f %f %f  %f %f %f %f %f", 
+        RCLCPP_INFO(get_node()->get_logger(), "uvms pose initialized with %f %f %f %f %f %f %f  %f %f %f %f %f", 
         uvms.current_position[0],
         uvms.current_position[1],
         uvms.current_position[2],
