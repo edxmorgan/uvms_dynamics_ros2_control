@@ -107,7 +107,7 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
     const rclcpp::Duration & /*period*/,
     int &agent_id)
 {
-    int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 10 elements (vehicle + manipulator)
+    int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
     // Calculate the starting index for the current agent's data in the uvms_commands
     int start_index = agent_id * command_length_per_agent;
@@ -158,17 +158,21 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
     uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
 
-    uvms_world[agent_id].u_min = {-4, -4, -4, -4, -4, -4, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {4, 4, 4, 4, 4, 4,  1.0, 0.1, 0.1, 0.1};
+    uvms_world[agent_id].u_min = {-1, -1, -3, -1, -0.1, -1, -1.0, -0.1, -0.1, -0.1};
+    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1,  1.0, 0.1, 0.1, 0.1};
 
-    int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
+    uvms_world[agent_id].joint_min = {-100, -100, -100, -0.2, -0.2, -3.14, 0.00, 1.50, 0.10, 0.10};
+    uvms_world[agent_id].joint_max = {100, 100, 100, 0.2, 0.2, 3.14, 5.50, 3.40, 3.40, 5.70};
+
+
+    int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
     // Calculate the starting index for the current agent's data in the uvms_commands
     int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + 10; // We are only interested in the first 10 elements (6 vehicle reference + 4 joints reference)
+    int end_index = start_index + command_length_per_agent;
 
     // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index);
+    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index-1);
 
     std::vector<casadi::DM> blue_rg = {0., 0., 0.02};
     std::vector<casadi::DM> blue_rb = {0, 0, 0};
@@ -239,22 +243,22 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    uvms_world[agent_id].u_min = {-1, -1, -3, -1, -1, -1, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 1,  1.0, 0.1, 0.1, 0.1};
+    uvms_world[agent_id].u_min = {-1, -1, -3, -1, -0.1, -1, -1.0, -0.1, -0.1, -0.1};
+    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1,  1.0, 0.1, 0.1, 0.1};
 
     uvms_world[agent_id].joint_min = {-100, -100, -100, -0.2, -0.2, -3.14, 0.00, 1.50, 0.10, 0.10};
     uvms_world[agent_id].joint_max = {100, 100, 100, 0.2, 0.2, 3.14, 5.50, 3.40, 3.40, 5.70};
 
-    int command_length_per_agent = 10; // Each agent's command contains 10 elements (position + quaternion + velocity)
+    int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
-    // Calculate the starting index for the current agent's data in the uvms_commands array
+    // Calculate the starting index for the current agent's data in the uvms_commands
     int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + 10; // We are only interested in the first 10 elements (6 vehicle reference + 4 joints reference)
+    int end_index = start_index + command_length_per_agent;
 
     // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index);
-    uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index);
-    uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index);
+    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index-1);
+    uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index-1);
+    uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index-1);
 
     std::vector<double> eul_states_kin = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
                                                                   uvms_world[agent_id].current_position[4],
