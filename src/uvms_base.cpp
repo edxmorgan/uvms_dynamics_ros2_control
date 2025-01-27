@@ -364,16 +364,20 @@ namespace uvms_controller
 
     bool size_mismatch = false;
     std::string mismatched_field;
+    // Change the type from int to std::size_t
+    std::size_t recieved_size;
 
     if (uvms_commands->command_type == "force" && uvms_commands->force.data.size() != expected_command_size)
     {
       size_mismatch = true;
       mismatched_field = "force";
+      recieved_size = uvms_commands->force.data.size();
     }
     else if (uvms_commands->command_type == "pid" && uvms_commands->pose.data.size() != expected_command_size)
     {
       size_mismatch = true;
       mismatched_field = "pose";
+      recieved_size = uvms_commands->pose.data.size();
     }
     else if (uvms_commands->command_type == "optimal")
     {
@@ -381,16 +385,19 @@ namespace uvms_controller
       {
         size_mismatch = true;
         mismatched_field = "pose";
+        recieved_size = uvms_commands->pose.data.size();
       }
       else if (uvms_commands->twist.data.size() != expected_command_size)
       {
         size_mismatch = true;
         mismatched_field = "twist";
+        recieved_size = uvms_commands->twist.data.size();
       }
       else if (uvms_commands->acceleration.data.size() != expected_command_size)
       {
         size_mismatch = true;
         mismatched_field = "acceleration";
+        recieved_size = uvms_commands->acceleration.data.size();
       }
     }
 
@@ -402,7 +409,7 @@ namespace uvms_controller
           uvms_commands->command_type.c_str(),
           expected_command_size,
           mismatched_field.c_str(),
-          uvms_commands->force.data.size()
+          recieved_size
       );
 
       return controller_interface::return_type::ERROR;

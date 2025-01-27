@@ -33,7 +33,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.uvms_J_ned = fun_service.load_casadi_fun("J_uvms", "libJ_uvms.so");
     fun_service.uvms_optimal_controller = fun_service.load_casadi_fun("opt_cont", "libOptController.so");
 
-    is_coupled = 0;
+    is_coupled = 1;
 
     manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4,
                               1e-06, 1e-06, 1e-06, 1e-06,
@@ -239,8 +239,8 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    uvms_world[agent_id].u_min = {-4, -4, -4, -4, -4, -4, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {4, 4, 4, 4, 4, 4,  1.0, 0.1, 0.1, 0.1};
+    uvms_world[agent_id].u_min = {-1, -1, -3, -1, -1, -1, -1.0, -0.1, -0.1, -0.1};
+    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 1,  1.0, 0.1, 0.1, 0.1};
 
     uvms_world[agent_id].joint_min = {-100, -100, -100, -0.2, -0.2, -3.14, 0.00, 1.50, 0.10, 0.10};
     uvms_world[agent_id].joint_max = {100, 100, 100, 0.2, 0.2, 3.14, 5.50, 3.40, 3.40, 5.70};
