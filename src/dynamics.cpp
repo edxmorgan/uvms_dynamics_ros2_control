@@ -56,8 +56,8 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
-    joint_min = {-100, -100, -100, -100, -100, -100, 1, 0.01, 0.01, 0.01};
-    joint_max = {100, 100, 100, 100, 100, 100, 100, 3.4, 3.4, 5.7};
+    joint_min = {-1000, -1000, -1000, -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
+    joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 1000,  3.4, 3.4, 5.7};
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -138,7 +138,7 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
                                           uvms_world[agent_id].current_velocity.end());
 
     std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
-                                          uvms_world[agent_id].current_position.begin() + 7);
+                                          uvms_world[agent_id].current_position.begin() + 6);
 
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
@@ -218,7 +218,7 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
                                           uvms_world[agent_id].current_velocity.end());
 
     std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
-                                          uvms_world[agent_id].current_position.begin() + 7);
+                                          uvms_world[agent_id].current_position.begin() + 6);
 
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
