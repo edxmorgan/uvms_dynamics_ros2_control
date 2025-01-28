@@ -21,8 +21,8 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     fun_service.uvms_dynamics = fun_service.load_casadi_fun("UVMSnext_use_coupled", "libUVMS_xnext.so");
 
-    fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
-    fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
+    // fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
+    // fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
     fun_service.pid_controller = fun_service.load_casadi_fun("pid", "libPID.so");
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
     fun_service.uv_G = fun_service.load_casadi_fun("G_n", "libg.so");
@@ -33,7 +33,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.uvms_J_ned = fun_service.load_casadi_fun("J_uvms", "libJ_uvms.so");
     fun_service.uvms_optimal_controller = fun_service.load_casadi_fun("opt_cont", "libOptController.so");
 
-    is_coupled = 1;
+    is_coupled = 0;
 
     manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4,
                               1e-06, 1e-06, 1e-06, 1e-06,
@@ -55,6 +55,9 @@ void casadi_uvms::Dynamics::init_dynamics()
                           0.00000e+00};
 
     base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
+
+    joint_min = {-100, -100, -100, -100, -100, -100, 1, 0.01, 0.01, 0.01};
+    joint_max = {100, 100, 100, 100, 100, 100, 100, 3.4, 3.4, 5.7};
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -66,21 +69,23 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
 {
     DM base_T = DM::vertcat({DM(3.142), DM(0.000), DM(0.000), DM(0.140), DM(0.000), DM(-0.120)});
 
-    q_orig_base.setW(uvms_world[agent_id].current_position[3]);
-    q_orig_base.setX(uvms_world[agent_id].current_position[4]);
-    q_orig_base.setY(uvms_world[agent_id].current_position[5]);
-    q_orig_base.setZ(uvms_world[agent_id].current_position[6]);
-    q_orig_base.normalize();
     double x = uvms_world[agent_id].current_position[0];
     double y = uvms_world[agent_id].current_position[1];
     double z = uvms_world[agent_id].current_position[2];
+
+
+    q_orig_base.setRPY(uvms_world[agent_id].current_position[3],
+                       uvms_world[agent_id].current_position[4],
+                       uvms_world[agent_id].current_position[5]);
+    q_orig_base.normalize();
+
     DM state_position = DM::vertcat({DM(x),
                                      DM(y),
                                      DM(z),
-                                     DM(q_orig_base.w()),
-                                     DM(q_orig_base.x()),
-                                     DM(q_orig_base.y()),
-                                     DM(q_orig_base.z())});
+                                     DM(q_orig_base.getW()),
+                                     DM(q_orig_base.getX()),
+                                     DM(q_orig_base.getY()),
+                                     DM(q_orig_base.getZ())});
 
     DM generalized_coordinates = DM::vertcat({0.0,
                                               0.0,
@@ -88,10 +93,10 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
                                               0.0,
                                               0.0,
                                               0.0,
+                                              DM(uvms_world[agent_id].current_position[6]),
                                               DM(uvms_world[agent_id].current_position[7]),
                                               DM(uvms_world[agent_id].current_position[8]),
-                                              DM(uvms_world[agent_id].current_position[9]),
-                                              DM(uvms_world[agent_id].current_position[10])});
+                                              DM(uvms_world[agent_id].current_position[9])});
 
     std::vector<DM> fk_argumt = {generalized_coordinates, base_T};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
@@ -138,15 +143,9 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-    std::vector<double> eul_states = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
-                                                              uvms_world[agent_id].current_position[4],
-                                                              uvms_world[agent_id].current_position[5],
-                                                              uvms_world[agent_id].current_position[6]);
-
     std::vector<casadi::DM> uvms_position_state;
     uvms_position_state.reserve(10);
-    uvms_position_state.insert(uvms_position_state.end(), vehicle_pose_.begin(), vehicle_pose_.begin() + 3);
-    uvms_position_state.insert(uvms_position_state.end(), eul_states.begin(), eul_states.end());
+    uvms_position_state.insert(uvms_position_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
     uvms_position_state.insert(uvms_position_state.end(), arm_position_.begin(), arm_position_.end() - 1);
 
     std::vector<casadi::DM> uvms_velocity_state;
@@ -159,11 +158,7 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
 
     uvms_world[agent_id].u_min = {-1, -1, -3, -1, -0.1, -1, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1,  1.0, 0.1, 0.1, 0.1};
-
-    uvms_world[agent_id].joint_min = {-100, -100, -100, -0.2, -0.2, -3.14, 0.00, 1.50, 0.10, 0.10};
-    uvms_world[agent_id].joint_max = {100, 100, 100, 0.2, 0.2, 3.14, 5.50, 3.40, 3.40, 5.70};
-
+    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1, 1.0, 0.1, 0.1, 0.1};
 
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
@@ -172,20 +167,19 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     int end_index = start_index + command_length_per_agent;
 
     // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index-1);
+    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index - 1);
 
-    std::vector<casadi::DM> blue_rg = {0., 0., 0.02};
-    std::vector<casadi::DM> blue_rb = {0, 0, 0};
-    std::vector<double> eul_states_kin = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
-                                                                  uvms_world[agent_id].current_position[4],
-                                                                  uvms_world[agent_id].current_position[5],
-                                                                  uvms_world[agent_id].current_position[6]);
+    std::vector<casadi::DM> blue_rg = {0.0, 0.0, 0.02};
+    std::vector<casadi::DM> blue_rb = {0.0, 0.0, 0.0};
 
     depth = casadi::DM(uvms_world[agent_id].current_position[2]);
-    uv_G_argument = {depth, casadi::DM(eul_states_kin), 112.81500000000001, 114.8, blue_rg, blue_rb};
+    uv_G_argument = {depth, casadi::DM({uvms_world[agent_id].current_position[3], uvms_world[agent_id].current_position[4], uvms_world[agent_id].current_position[5]}),
+                     112.81500000000001, 114.8, blue_rg, blue_rb};
     uv_g = fun_service.uv_G(uv_G_argument);
 
-    uv_J_ned_argument = {casadi::DM(eul_states_kin)};
+    uv_J_ned_argument = {casadi::DM({uvms_world[agent_id].current_position[3],
+                                     uvms_world[agent_id].current_position[4],
+                                     uvms_world[agent_id].current_position[5]})};
     uv_J_ned = fun_service.uv_J_ned(uv_J_ned_argument);
 
     pid_argument = {uvms_position_state,
@@ -229,25 +223,15 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-    std::vector<double> eul_states = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
-                                                              uvms_world[agent_id].current_position[4],
-                                                              uvms_world[agent_id].current_position[5],
-                                                              uvms_world[agent_id].current_position[6]);
-
     std::vector<casadi::DM> uvms_state;
     uvms_state.reserve(20);
-    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.begin() + 3);
-    uvms_state.insert(uvms_state.end(), eul_states.begin(), eul_states.end());
-
+    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
     uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end() - 1);
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
     uvms_world[agent_id].u_min = {-1, -1, -3, -1, -0.1, -1, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1,  1.0, 0.1, 0.1, 0.1};
-
-    uvms_world[agent_id].joint_min = {-100, -100, -100, -0.2, -0.2, -3.14, 0.00, 1.50, 0.10, 0.10};
-    uvms_world[agent_id].joint_max = {100, 100, 100, 0.2, 0.2, 3.14, 5.50, 3.40, 3.40, 5.70};
+    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1, 1.0, 0.1, 0.1, 0.1};
 
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
@@ -256,14 +240,9 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     int end_index = start_index + command_length_per_agent;
 
     // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index-1);
-    uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index-1);
-    uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index-1);
-
-    std::vector<double> eul_states_kin = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
-                                                                  uvms_world[agent_id].current_position[4],
-                                                                  uvms_world[agent_id].current_position[5],
-                                                                  uvms_world[agent_id].current_position[6]);
+    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index - 1);
+    uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index - 1);
+    uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index - 1);
 
     std::vector<double> ref_eul_states_kin = {
         uvms_world[agent_id].XF[3], // Roll
@@ -278,10 +257,15 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
 
     inv_uvms_H_ = casadi::DM::solve(uvms_H_.at(0), casadi::DM::eye(uvms_H_.at(0).size1()));
 
-    uvms_J_ned_argument = {casadi::DM(eul_states_kin)};
+    uvms_J_ned_argument = {casadi::DM({uvms_world[agent_id].current_position[3],
+                                       uvms_world[agent_id].current_position[4],
+                                       uvms_world[agent_id].current_position[5]})};
+
     uvms_J_ned = fun_service.uvms_J_ned(uvms_J_ned_argument);
 
-    uvms_J_REF_ned_argument = {casadi::DM(ref_eul_states_kin)};
+    uvms_J_REF_ned_argument = {casadi::DM({uvms_world[agent_id].current_position[3],
+                                           uvms_world[agent_id].current_position[4],
+                                           uvms_world[agent_id].current_position[5]})};
     uvms_J_REF_ned = fun_service.uvms_J_ned(uvms_J_REF_ned_argument);
 
     // Define a1_v and a2_v as vectors of casadi::DM
@@ -366,21 +350,14 @@ void casadi_uvms::Dynamics::simulate(
                                           uvms_world[agent_id].current_velocity.end());
 
     std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
-                                          uvms_world[agent_id].current_position.begin() + 7);
+                                          uvms_world[agent_id].current_position.begin() + 6);
 
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-    std::vector<double> eul_states = convertQuaternionToEuler(uvms_world[agent_id].current_position[3],
-                                                              uvms_world[agent_id].current_position[4],
-                                                              uvms_world[agent_id].current_position[5],
-                                                              uvms_world[agent_id].current_position[6]);
-
     std::vector<casadi::DM> uvms_state;
     uvms_state.reserve(20);
-    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.begin() + 3);
-    uvms_state.insert(uvms_state.end(), eul_states.begin(), eul_states.end());
-
+    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
     uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end() - 1);
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
@@ -388,8 +365,8 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
                                          uvms_world[agent_id].force_input.end() - 1);
 
-    uvms_world[agent_id].joint_min = {-100, -100, -100, -0.26, -0.35, -3.14, 1, 0.01, 0.01, 0.01};
-    uvms_world[agent_id].joint_max = {100, 100, 100, 0.26, 0.35, 3.14, 5.5, 3.4, 3.4, 5.7};
+    uvms_world[agent_id].joint_min = joint_min;
+    uvms_world[agent_id].joint_max = joint_max;
 
     uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, vehicle_parameters, manipulator_parameters, base_To,
                               uvms_world[agent_id].joint_min, uvms_world[agent_id].joint_max};
@@ -398,21 +375,18 @@ void casadi_uvms::Dynamics::simulate(
 
     next_states = uvms_sim.at(0).nonzeros();
 
-    std::vector<double> quat_states = convertEulerToQuaternion(next_states[3], next_states[4], next_states[5]);
-
     uvms_world[agent_id].next_position[0] = next_states[0];
     uvms_world[agent_id].next_position[1] = next_states[1];
     uvms_world[agent_id].next_position[2] = next_states[2];
 
-    uvms_world[agent_id].next_position[3] = quat_states[0];
-    uvms_world[agent_id].next_position[4] = quat_states[1];
-    uvms_world[agent_id].next_position[5] = quat_states[2];
-    uvms_world[agent_id].next_position[6] = quat_states[3];
+    uvms_world[agent_id].next_position[3] = next_states[3];
+    uvms_world[agent_id].next_position[4] = next_states[4];
+    uvms_world[agent_id].next_position[5] = next_states[5];
 
-    uvms_world[agent_id].next_position[7] = next_states[6];
-    uvms_world[agent_id].next_position[8] = next_states[7];
-    uvms_world[agent_id].next_position[9] = next_states[8];
-    uvms_world[agent_id].next_position[10] = next_states[9];
+    uvms_world[agent_id].next_position[6] = next_states[6];
+    uvms_world[agent_id].next_position[7] = next_states[7];
+    uvms_world[agent_id].next_position[8] = next_states[8];
+    uvms_world[agent_id].next_position[9] = next_states[9];
 
     uvms_world[agent_id].next_velocity[0] = next_states[10];
     uvms_world[agent_id].next_velocity[1] = next_states[11];
@@ -429,6 +403,7 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].force_input[0] = uvms_sim.at(1).nonzeros()[0];
     uvms_world[agent_id].force_input[1] = uvms_sim.at(1).nonzeros()[1];
     uvms_world[agent_id].force_input[2] = uvms_sim.at(1).nonzeros()[2];
+
     uvms_world[agent_id].force_input[3] = uvms_sim.at(1).nonzeros()[3];
     uvms_world[agent_id].force_input[4] = uvms_sim.at(1).nonzeros()[4];
     uvms_world[agent_id].force_input[5] = uvms_sim.at(1).nonzeros()[5];
@@ -441,6 +416,7 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].next_acceleration[0] = uvms_sim.at(2).nonzeros()[0];
     uvms_world[agent_id].next_acceleration[1] = uvms_sim.at(2).nonzeros()[1];
     uvms_world[agent_id].next_acceleration[2] = uvms_sim.at(2).nonzeros()[2];
+
     uvms_world[agent_id].next_acceleration[3] = uvms_sim.at(2).nonzeros()[3];
     uvms_world[agent_id].next_acceleration[4] = uvms_sim.at(2).nonzeros()[4];
     uvms_world[agent_id].next_acceleration[5] = uvms_sim.at(2).nonzeros()[5];
@@ -463,23 +439,6 @@ void casadi_uvms::Dynamics::simulate(
     //     uvms_world[agent_id].next_velocity[7],
     //     uvms_world[agent_id].next_velocity[8],
     //     uvms_world[agent_id].next_velocity[9]);
-};
-
-std::vector<double> casadi_uvms::Dynamics::convertEulerToQuaternion(const double r, const double p, const double y)
-{
-    casadi::DM euler_vector = casadi::DM::vertcat({r, p, y});
-    // Convert euler to quaternion states
-    quaternion_states = fun_service.euler2q(euler_vector);
-
-    return quaternion_states.at(0).nonzeros();
-};
-
-std::vector<double> casadi_uvms::Dynamics::convertQuaternionToEuler(const double w, const double x, const double y, const double z)
-{
-    casadi::DM quaternion_vector = casadi::DM::vertcat({w, x, y, z});
-    // Convert quaternion to euler states
-    euler_states = fun_service.q2euler(quaternion_vector);
-    return euler_states.at(0).nonzeros();
 };
 
 // Helper function implementation

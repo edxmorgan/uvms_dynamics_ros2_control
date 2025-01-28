@@ -43,8 +43,6 @@ namespace casadi_uvms
         std::vector<DM> pid_argument;
         std::vector<DM> pid_command;
         std::vector<double> next_states;
-        std::vector<DM> quaternion_states;
-        std::vector<DM> euler_states;
         DM depth;
         std::vector<DM> uv_G_argument;
         std::vector<DM> uv_g;
@@ -61,8 +59,8 @@ namespace casadi_uvms
         std::vector<casadi::DM> base_To;
         std::vector<casadi::DM> manipulator_parameters;
         std::vector<casadi::DM> vehicle_parameters;
-        tf2::Quaternion q_orig_base, q_rot_base, q_new_base;
-        double roll, pitch, yaw;
+        tf2::Quaternion q_orig_base;
+
         double time_seconds;
         std::vector<DM> dynamics_argument;
         std::vector<DM> uvms_H_;
@@ -71,6 +69,10 @@ namespace casadi_uvms
         std::vector<DM> optimal_command;
         casadi::DM optimal_control_params;
         std::vector<DM> opt_control_argument;
+        std::vector<double> joint_min;
+        std::vector<double> joint_max;    
+
+
 
     public:
         struct Model
@@ -168,8 +170,6 @@ namespace casadi_uvms
             int &agent_id);
         // Helper function to convert casadi::DM to std::string
         std::string dm_to_string(const casadi::DM& dm) const;
-        std::vector<double> convertEulerToQuaternion(const double r, const double p, const double y);
-        std::vector<double> convertQuaternionToEuler(const double w, const double x, const double y, const double z);
     };
 } // namespace casadi_uvms
 

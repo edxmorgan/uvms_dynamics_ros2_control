@@ -191,7 +191,7 @@ namespace uvms_controller
           uvms.prev_position = it->current_position;
           uvms.prev_velocity = it->current_velocity;
 
-          uvms.current_position = get_state_values(it->poseSubscriber, 12);
+          uvms.current_position = get_state_values(it->poseSubscriber, 11);
           uvms.current_velocity = get_state_values(it->velSubscriber, 11);
         }
         else
@@ -201,27 +201,27 @@ namespace uvms_controller
           uvms.prev_position = uvms.current_position;
           uvms.prev_velocity = uvms.current_velocity;
 
-          uvms.current_position = get_state_values(uvms.poseSubscriber, 12);
+          uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
           uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
         }
         uvms.initialised_real_state = false;
 
         RCLCPP_INFO(get_node()->get_logger(), "uvms pose size %lu", uvms.current_position.size());
 
-        RCLCPP_INFO(get_node()->get_logger(), "uvms pose initialized with %f %f %f %f %f %f %f  %f %f %f %f %f", 
+        RCLCPP_INFO(get_node()->get_logger(), "uvms pose initialized with %f %f %f %f %f %f  %f %f %f %f %f", 
         uvms.current_position[0],
         uvms.current_position[1],
         uvms.current_position[2],
+
         uvms.current_position[3],
         uvms.current_position[4],
         uvms.current_position[5],
-        uvms.current_position[6],
 
+        uvms.current_position[6],
         uvms.current_position[7],
         uvms.current_position[8],
         uvms.current_position[9],
-        uvms.current_position[10],
-        uvms.current_position[11]
+        uvms.current_position[10]
         );
       }
       else
@@ -229,7 +229,7 @@ namespace uvms_controller
         uvms.prev_position = uvms.current_position;
         uvms.prev_velocity = uvms.current_velocity;
 
-        uvms.current_position = get_state_values(uvms.poseSubscriber, 12);
+        uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
         uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
       }
 
@@ -291,7 +291,7 @@ namespace uvms_controller
         realtime_frame_transform_publisher_->unlockAndPublish();
       };
 
-      set_command_values(uvms.poseCommander, uvms.next_position, 12);
+      set_command_values(uvms.poseCommander, uvms.next_position, 11);
       set_command_values(uvms.velCommander, uvms.next_velocity, 11);
       set_command_values(uvms.effortCommander, uvms.force_input, 11);
       set_command_values(uvms.accCommander, uvms.next_acceleration, 11);
