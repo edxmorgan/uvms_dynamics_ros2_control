@@ -32,17 +32,23 @@ namespace casadi_uvms
     private:
         // Store the dynamics function for the whole body robot
         casadi_uvms::FunctionLoader fun_service;
-        std::vector<DM> arm_simulate_argument;
-        std::vector<DM> arm_sim;
-        std::vector<DM> forward_pose;
+
         std::vector<DM> vehicle_simulate_argument;
         std::vector<DM> vehicle_sim;
+        std::vector<double> vehicle_next_states;
+
+        std::vector<DM> arm_simulate_argument;
+        std::vector<DM> arm_sim;
+        std::vector<double> arm_next_states;
+
         std::vector<DM> uvms_simulate_argument;
         std::vector<DM> uvms_sim;
+        std::vector<double> next_states;
+
         std::vector<DM> joint_q_arg;
         std::vector<DM> pid_argument;
         std::vector<DM> pid_command;
-        std::vector<double> next_states;
+
         DM depth;
         std::vector<DM> uv_G_argument;
         std::vector<DM> uv_g;

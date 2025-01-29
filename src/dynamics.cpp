@@ -21,8 +21,9 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     fun_service.uvms_dynamics = fun_service.load_casadi_fun("UVMSnext_use_coupled", "libUVMS_xnext.so");
 
-    // fun_service.q2euler = fun_service.load_casadi_fun("q2euler", "libq2eulerf.so");
-    // fun_service.euler2q = fun_service.load_casadi_fun("euler2q", "libeuler2qf.so");
+    fun_service.uv_dynamics = fun_service.load_casadi_fun("Vnext", "libUV_xnext.so");
+    fun_service.arm_dynamics = fun_service.load_casadi_fun("Mnext", "libMnext.so");
+
     fun_service.pid_controller = fun_service.load_casadi_fun("pid", "libPID.so");
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
     fun_service.uv_G = fun_service.load_casadi_fun("G_n", "libg.so");
@@ -56,8 +57,8 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
-    joint_min = {-1000, -1000, -1000, -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
-    joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 1000,  3.4, 3.4, 5.7};
+    joint_min = {-1000, -1000, -1000,  -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
+    joint_max = {1000, 1000, 1000,  1000, 1000, 1000,   5.50, 3.40, 3.40, 5.70};
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -355,76 +356,107 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-    std::vector<casadi::DM> uvms_state;
-    uvms_state.reserve(20);
-    uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
-    uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end() - 1);
-    uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
-    uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
+    // fix bug later
+    // std::vector<casadi::DM> uvms_state;
+    // uvms_state.reserve(20);
+    // uvms_state.insert(uvms_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    // uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end() - 1);
+    // uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
+    // uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
-                                         uvms_world[agent_id].force_input.end() - 1);
+    // std::vector<casadi::DM> uvms_forces_(uvms_world[agent_id].force_input.begin(),
+    //                                      uvms_world[agent_id].force_input.end() - 1);
 
-    uvms_world[agent_id].joint_min = joint_min;
-    uvms_world[agent_id].joint_max = joint_max;
+    // uvms_world[agent_id].joint_min = joint_min;
+    // uvms_world[agent_id].joint_max = joint_max;
 
-    uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, vehicle_parameters, manipulator_parameters, base_To,
-                              uvms_world[agent_id].joint_min, uvms_world[agent_id].joint_max};
+    // uvms_simulate_argument = {is_coupled, uvms_state, uvms_forces_, dt, vehicle_parameters, manipulator_parameters, base_To,
+    //                           uvms_world[agent_id].joint_min, uvms_world[agent_id].joint_max};
 
-    uvms_sim = fun_service.uvms_dynamics(uvms_simulate_argument);
+    // uvms_sim = fun_service.uvms_dynamics(uvms_simulate_argument);
 
-    next_states = uvms_sim.at(0).nonzeros();
+    // next_states = uvms_sim.at(0).nonzeros();
 
-    uvms_world[agent_id].next_position[0] = next_states[0];
-    uvms_world[agent_id].next_position[1] = next_states[1];
-    uvms_world[agent_id].next_position[2] = next_states[2];
+    std::vector<casadi::DM> uv_state;
+    uv_state.reserve(12);
+    uv_state.insert(uv_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    uv_state.insert(uv_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
 
-    uvms_world[agent_id].next_position[3] = next_states[3];
-    uvms_world[agent_id].next_position[4] = next_states[4];
-    uvms_world[agent_id].next_position[5] = next_states[5];
 
-    uvms_world[agent_id].next_position[6] = next_states[6];
-    uvms_world[agent_id].next_position[7] = next_states[7];
-    uvms_world[agent_id].next_position[8] = next_states[8];
-    uvms_world[agent_id].next_position[9] = next_states[9];
+    std::vector<casadi::DM> uv_forces_(uvms_world[agent_id].force_input.begin(),
+                                         uvms_world[agent_id].force_input.end() - 5);
 
-    uvms_world[agent_id].next_velocity[0] = next_states[10];
-    uvms_world[agent_id].next_velocity[1] = next_states[11];
-    uvms_world[agent_id].next_velocity[2] = next_states[12];
-    uvms_world[agent_id].next_velocity[3] = next_states[13];
-    uvms_world[agent_id].next_velocity[4] = next_states[14];
-    uvms_world[agent_id].next_velocity[5] = next_states[15];
+    vehicle_simulate_argument = {uv_state, uv_forces_, vehicle_parameters, dt};
+    vehicle_sim = fun_service.uv_dynamics(vehicle_simulate_argument);
+    vehicle_next_states = vehicle_sim.at(0).nonzeros();
 
-    uvms_world[agent_id].next_velocity[6] = next_states[16];
-    uvms_world[agent_id].next_velocity[7] = next_states[17];
-    uvms_world[agent_id].next_velocity[8] = next_states[18];
-    uvms_world[agent_id].next_velocity[9] = next_states[19];
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    std::vector<casadi::DM> arm_state;
+    arm_state.reserve(8);
+    arm_state.insert(arm_state.end(), arm_position_.begin(), arm_position_.end() - 1);
+    arm_state.insert(arm_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    uvms_world[agent_id].force_input[0] = uvms_sim.at(1).nonzeros()[0];
-    uvms_world[agent_id].force_input[1] = uvms_sim.at(1).nonzeros()[1];
-    uvms_world[agent_id].force_input[2] = uvms_sim.at(1).nonzeros()[2];
+    std::vector<casadi::DM> arm_torques_(uvms_world[agent_id].force_input.begin() + 6,
+                                         uvms_world[agent_id].force_input.end() -1);
 
-    uvms_world[agent_id].force_input[3] = uvms_sim.at(1).nonzeros()[3];
-    uvms_world[agent_id].force_input[4] = uvms_sim.at(1).nonzeros()[4];
-    uvms_world[agent_id].force_input[5] = uvms_sim.at(1).nonzeros()[5];
+    std::vector<double> q_min = { 1, 0.01, 0.01, 0.01};
+    std::vector<double> q_max = { 5.50, 3.40, 3.40, 5.70};
 
-    uvms_world[agent_id].force_input[6] = uvms_sim.at(1).nonzeros()[6];
-    uvms_world[agent_id].force_input[7] = uvms_sim.at(1).nonzeros()[7];
-    uvms_world[agent_id].force_input[8] = uvms_sim.at(1).nonzeros()[8];
-    uvms_world[agent_id].force_input[9] = uvms_sim.at(1).nonzeros()[9];
+    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max};
+    arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
+    arm_next_states = arm_sim.at(0).nonzeros();
 
-    uvms_world[agent_id].next_acceleration[0] = uvms_sim.at(2).nonzeros()[0];
-    uvms_world[agent_id].next_acceleration[1] = uvms_sim.at(2).nonzeros()[1];
-    uvms_world[agent_id].next_acceleration[2] = uvms_sim.at(2).nonzeros()[2];
+    uvms_world[agent_id].next_position[0] = vehicle_next_states[0];
+    uvms_world[agent_id].next_position[1] = vehicle_next_states[1];
+    uvms_world[agent_id].next_position[2] = vehicle_next_states[2];
 
-    uvms_world[agent_id].next_acceleration[3] = uvms_sim.at(2).nonzeros()[3];
-    uvms_world[agent_id].next_acceleration[4] = uvms_sim.at(2).nonzeros()[4];
-    uvms_world[agent_id].next_acceleration[5] = uvms_sim.at(2).nonzeros()[5];
+    uvms_world[agent_id].next_position[3] = vehicle_next_states[3];
+    uvms_world[agent_id].next_position[4] = vehicle_next_states[4];
+    uvms_world[agent_id].next_position[5] = vehicle_next_states[5];
 
-    uvms_world[agent_id].next_acceleration[6] = uvms_sim.at(2).nonzeros()[6];
-    uvms_world[agent_id].next_acceleration[7] = uvms_sim.at(2).nonzeros()[7];
-    uvms_world[agent_id].next_acceleration[8] = uvms_sim.at(2).nonzeros()[8];
-    uvms_world[agent_id].next_acceleration[9] = uvms_sim.at(2).nonzeros()[9];
+    uvms_world[agent_id].next_position[6] = arm_next_states[0];
+    uvms_world[agent_id].next_position[7] = arm_next_states[1];
+    uvms_world[agent_id].next_position[8] = arm_next_states[2];
+    uvms_world[agent_id].next_position[9] = arm_next_states[3];
+
+    uvms_world[agent_id].next_velocity[0] = vehicle_next_states[6];
+    uvms_world[agent_id].next_velocity[1] = vehicle_next_states[7];
+    uvms_world[agent_id].next_velocity[2] = vehicle_next_states[8];
+    
+    uvms_world[agent_id].next_velocity[3] = vehicle_next_states[9];
+    uvms_world[agent_id].next_velocity[4] = vehicle_next_states[10];
+    uvms_world[agent_id].next_velocity[5] = vehicle_next_states[11];
+
+    uvms_world[agent_id].next_velocity[6] = arm_next_states[4];
+    uvms_world[agent_id].next_velocity[7] = arm_next_states[5];
+    uvms_world[agent_id].next_velocity[8] = arm_next_states[6];
+    uvms_world[agent_id].next_velocity[9] = arm_next_states[7];
+
+    // uvms_world[agent_id].force_input[0] = uvms_sim.at(1).nonzeros()[0];
+    // uvms_world[agent_id].force_input[1] = uvms_sim.at(1).nonzeros()[1];
+    // uvms_world[agent_id].force_input[2] = uvms_sim.at(1).nonzeros()[2];
+
+    // uvms_world[agent_id].force_input[3] = uvms_sim.at(1).nonzeros()[3];
+    // uvms_world[agent_id].force_input[4] = uvms_sim.at(1).nonzeros()[4];
+    // uvms_world[agent_id].force_input[5] = uvms_sim.at(1).nonzeros()[5];
+
+    // uvms_world[agent_id].force_input[6] = uvms_sim.at(1).nonzeros()[6];
+    // uvms_world[agent_id].force_input[7] = uvms_sim.at(1).nonzeros()[7];
+    // uvms_world[agent_id].force_input[8] = uvms_sim.at(1).nonzeros()[8];
+    // uvms_world[agent_id].force_input[9] = uvms_sim.at(1).nonzeros()[9];
+
+    // uvms_world[agent_id].next_acceleration[0] = uvms_sim.at(2).nonzeros()[0];
+    // uvms_world[agent_id].next_acceleration[1] = uvms_sim.at(2).nonzeros()[1];
+    // uvms_world[agent_id].next_acceleration[2] = uvms_sim.at(2).nonzeros()[2];
+
+    // uvms_world[agent_id].next_acceleration[3] = uvms_sim.at(2).nonzeros()[3];
+    // uvms_world[agent_id].next_acceleration[4] = uvms_sim.at(2).nonzeros()[4];
+    // uvms_world[agent_id].next_acceleration[5] = uvms_sim.at(2).nonzeros()[5];
+
+    // uvms_world[agent_id].next_acceleration[6] = uvms_sim.at(2).nonzeros()[6];
+    // uvms_world[agent_id].next_acceleration[7] = uvms_sim.at(2).nonzeros()[7];
+    // uvms_world[agent_id].next_acceleration[8] = uvms_sim.at(2).nonzeros()[8];
+    // uvms_world[agent_id].next_acceleration[9] = uvms_sim.at(2).nonzeros()[9];
 
     // RCLCPP_INFO(
     //     logger,

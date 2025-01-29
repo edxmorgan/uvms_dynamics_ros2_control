@@ -29,8 +29,8 @@ namespace casadi_uvms
     public:
         Function tester; // uvms casadi tester
         Function uvms_dynamics; // uvms dynamics
-        Function q2euler; //quaternion to euler function
-        Function euler2q; //euler 2 quaternion function
+        Function uv_dynamics; // standalone uv dynamics
+        Function arm_dynamics; // arm standalone dynamics
         Function forward_kinematics; // forward kinematics
         Function pid_controller; // whole-body PID controller
         Function uv_G; // restoring force acting on uv
