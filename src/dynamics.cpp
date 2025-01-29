@@ -357,20 +357,6 @@ void casadi_uvms::Dynamics::simulate(
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
 
-    std::vector<casadi::DM> uv_state;
-    uv_state.reserve(12);
-    uv_state.insert(uv_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
-    uv_state.insert(uv_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
-
-
-    std::vector<casadi::DM> uv_forces_(uvms_world[agent_id].force_input.begin(),
-                                         uvms_world[agent_id].force_input.end() - 5);
-
-    std::vector<double> f_ext = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    vehicle_simulate_argument = {uv_state, uv_forces_, vehicle_parameters, dt, f_ext};
-    vehicle_sim = fun_service.uv_dynamics(vehicle_simulate_argument);
-    vehicle_next_states = vehicle_sim.at(0).nonzeros();
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> arm_state;
     arm_state.reserve(8);
@@ -383,10 +369,25 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<double> q_min = { 1, 0.01, 0.01, 0.01};
     std::vector<double> q_max = { 5.50, 3.40, 3.40, 5.70};
 
-    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max};
+    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, base_To};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
+    arm_base_f_ext = arm_sim.at(1).nonzeros();
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    std::vector<casadi::DM> uv_state;
+    uv_state.reserve(12);
+    uv_state.insert(uv_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    uv_state.insert(uv_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
 
+
+    std::vector<casadi::DM> uv_forces_(uvms_world[agent_id].force_input.begin(),
+                                         uvms_world[agent_id].force_input.end() - 5);
+
+    vehicle_simulate_argument = {uv_state, uv_forces_, vehicle_parameters, dt, arm_base_f_ext};
+    vehicle_sim = fun_service.uv_dynamics(vehicle_simulate_argument);
+    vehicle_next_states = vehicle_sim.at(0).nonzeros();
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     uvms_world[agent_id].next_position[0] = vehicle_next_states[0];
     uvms_world[agent_id].next_position[1] = vehicle_next_states[1];
     uvms_world[agent_id].next_position[2] = vehicle_next_states[2];

@@ -41,6 +41,8 @@ namespace casadi_uvms
         std::vector<DM> arm_sim;
         std::vector<double> arm_next_states;
 
+        std::vector<double> arm_base_f_ext;
+
         std::vector<DM> uvms_simulate_argument;
         std::vector<DM> uvms_sim;
         std::vector<double> next_states;
