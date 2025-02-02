@@ -79,9 +79,20 @@ namespace uvms_controller
       casadi_uvms::Dynamics::Model uvms_agent;
       uvms_agent.id = idx;
 
+      // uvms_agent.Kp = {1, 1, 1, 1, 1, 1, 2.0, 2.0, 2.0, 2.0};
+      // uvms_agent.Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
+      // uvms_agent.Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
+
+      uvms_agent.Kp = {1, 1, 1, 1, 1, 1, 1.0440, 1.1677, 1.1840, 0.8942};
+      uvms_agent.Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
+      uvms_agent.Kd = {4, 3, 3, 3, 3, 3, 0.0000, 0.0000, 0.0000, 0.2010};
+
+      uvms_agent.u_min = {-1, -1, -3, -0.1, -0.1, -0.5, -2.0, -2.1, -2.1, -2.1};
+      uvms_agent.u_max = {1, 1, 3, 0.1, 0.1, 0.5, 2.0, 2.1, 2.1, 2.1};
+
       RCLCPP_INFO(get_node()->get_logger(), "Agent --> %s", agent_.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "Agent id--> %d", uvms_agent.id);
-////////////////////////////////////////////////
+      ////////////////////////////////////////////////
       if (params_.agents_map.at(agent_).prefix.empty())
       {
         RCLCPP_ERROR(get_node()->get_logger(), "'prefix' parameter was empty");
@@ -238,7 +249,7 @@ namespace uvms_controller
         }
 
         // ##############################################################################################################################
-         // effort command interfaces
+        // effort command interfaces
         if (params_.joints_map.at(joint_).effort_command_interface.empty())
         {
           RCLCPP_ERROR(get_node()->get_logger(), "'effort_command_interface' for joint %s parameter was empty", joint_.c_str());

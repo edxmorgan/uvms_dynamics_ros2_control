@@ -154,13 +154,6 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    uvms_world[agent_id].Kp = {1, 1, 1, 1, 1, 1, 2.0, 2.0, 2.0, 1.0};
-    uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
-    uvms_world[agent_id].Kd = {4, 3, 3, 3, 3, 3, 0.1, 0.1, 0.1, 0.1};
-
-    uvms_world[agent_id].u_min = {-1, -1, -3, -1, -0.1, -1, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1, 1.0, 0.1, 0.1, 0.1};
-
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
     // Calculate the starting index for the current agent's data in the uvms_commands
@@ -231,8 +224,6 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    uvms_world[agent_id].u_min = {-1, -1, -3, -1, -0.1, -1, -1.0, -0.1, -0.1, -0.1};
-    uvms_world[agent_id].u_max = {1, 1, 3, 1, 1, 0.1, 1.0, 0.1, 0.1, 0.1};
 
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
@@ -374,6 +365,9 @@ void casadi_uvms::Dynamics::simulate(
     arm_next_states = arm_sim.at(0).nonzeros();
     arm_base_f_ext = arm_sim.at(1).nonzeros();
 
+    if (uvms_world[agent_id].prefix == "robot_real_") {
+        arm_base_f_ext = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    };
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> uv_state;
     uv_state.reserve(12);
