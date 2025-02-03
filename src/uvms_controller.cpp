@@ -87,8 +87,8 @@ namespace uvms_controller
       uvms_agent.Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0000, 0.0000, 0.0000, 0.0000};
       uvms_agent.Kd = {4, 3, 3, 3, 3, 3, 0.0000, 0.0000, 0.0000, 0.2010};
 
-      uvms_agent.u_min = {-1, -1, -3, -0.1, -0.1, -0.5, -2.0, -2.1, -2.1, -2.1};
-      uvms_agent.u_max = {1, 1, 3, 0.1, 0.1, 0.5, 2.0, 2.1, 2.1, 2.1};
+      uvms_agent.u_min = {-1, -1, -3, -0.1, -0.1, -0.5,   -5.0, -3.1, -3.1, -2.1};
+      uvms_agent.u_max = {1, 1, 3, 0.1, 0.1, 0.5,    5.0, 3.1, 3.1, 2.1};
 
       RCLCPP_INFO(get_node()->get_logger(), "Agent --> %s", agent_.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "Agent id--> %d", uvms_agent.id);
