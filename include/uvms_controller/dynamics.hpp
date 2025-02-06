@@ -52,6 +52,8 @@ namespace casadi_uvms
         std::vector<DM> pid_command;
 
         DM depth;
+        double gravity;
+        double base_gravity;
         std::vector<DM> uv_G_argument;
         std::vector<DM> uv_g;
         std::vector<DM> uv_J_ned_argument;

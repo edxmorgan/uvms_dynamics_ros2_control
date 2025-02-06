@@ -43,7 +43,7 @@ void casadi_uvms::Dynamics::init_dynamics()
                               0, 0, 0, 0,
                               4.0, 1.9, 1.3, 1.0};
 
-    vehicle_parameters = {1.15000e+01, 1.12815e+02, 1.14800e+02, 0.00000e+00,
+    vehicle_parameters = {1.15000e+01, 1.12815e+02, 1.14000e+02, 0.00000e+00,
                           0.00000e+00, 2.00000e-02, 0.00000e+00, 0.00000e+00,
                           0.00000e+00, 1.60000e-01, 1.60000e-01, 1.60000e-01,
                           0.00000e+00, -5.50000e+00, -1.27000e+01, -1.45700e+01,
@@ -59,6 +59,8 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     joint_min = {-1000, -1000, -1000,  -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000,  1000, 1000, 1000,   5.50, 3.40, 3.40, 5.70};
+    gravity = 9.81;
+    base_gravity = -1.81;
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -360,7 +362,7 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<double> q_min = { 1, 0.01, 0.01, 0.01};
     std::vector<double> q_max = { 5.50, 3.40, 3.40, 5.70};
 
-    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, base_To};
+    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     arm_base_f_ext = arm_sim.at(1).nonzeros();
