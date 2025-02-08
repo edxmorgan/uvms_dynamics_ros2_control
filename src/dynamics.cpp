@@ -60,7 +60,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     joint_min = {-1000, -1000, -1000,  -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000,  1000, 1000, 1000,   5.50, 3.40, 3.40, 5.70};
     gravity = 9.81;
-    base_gravity = -0.0;
+    base_gravity = -3.81;
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -370,6 +370,7 @@ void casadi_uvms::Dynamics::simulate(
     if (uvms_world[agent_id].prefix == "robot_real_") {
         arm_base_f_ext = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     };
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> uv_state;
     uv_state.reserve(12);
