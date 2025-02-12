@@ -60,7 +60,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     joint_min = {-1000, -1000, -1000,  -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000,  1000, 1000, 1000,   5.50, 3.40, 3.40, 5.70};
     gravity = 9.81;
-    base_gravity = -3.81;
+    base_gravity = 0.0; //-3.81;
 };
 
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
