@@ -260,7 +260,9 @@ namespace uvms_controller
         return result;
       };
 
-      model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
+      if (uvms.prefix != "robot_real_") {
+        model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
+      };
 
       std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
 

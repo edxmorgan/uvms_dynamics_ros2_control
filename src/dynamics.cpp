@@ -57,8 +57,8 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
 
-    joint_min = {-1000, -1000, -1000,  -1000, -1000, -1000,  1, 0.01, 0.01, 0.01};
-    joint_max = {1000, 1000, 1000,  1000, 1000, 1000,   5.50, 3.40, 3.40, 5.70};
+    joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
+    joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
     gravity = 9.81;
     base_gravity = 0.0; //-3.81;
 };
@@ -75,7 +75,6 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     double x = uvms_world[agent_id].current_position[0];
     double y = uvms_world[agent_id].current_position[1];
     double z = uvms_world[agent_id].current_position[2];
-
 
     q_orig_base.setRPY(uvms_world[agent_id].current_position[3],
                        uvms_world[agent_id].current_position[4],
@@ -128,12 +127,30 @@ controller_interface::return_type casadi_uvms::Dynamics::force_controller(
 
 controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     std::shared_ptr<CmdType> &uvms_commands,
-    const rclcpp::Logger & /*logger*/,
+    const rclcpp::Logger &logger,
     const rclcpp::Clock::SharedPtr & /*clock*/,
     const rclcpp::Time & /*time*/,
     const rclcpp::Duration & /*period*/,
     int &agent_id)
 {
+
+    RCLCPP_DEBUG(
+        logger,
+        "Got positions to pid: %f,%f,%f, %f,%f,%f, %f,%f,%f,%f",
+        static_cast<double>(uvms_world[agent_id].current_position[0]),
+        static_cast<double>(uvms_world[agent_id].current_position[1]),
+        static_cast<double>(uvms_world[agent_id].current_position[2]),
+
+        static_cast<double>(uvms_world[agent_id].current_position[3]),
+        static_cast<double>(uvms_world[agent_id].current_position[4]),
+        static_cast<double>(uvms_world[agent_id].current_position[5]),
+
+        static_cast<double>(uvms_world[agent_id].current_position[6]),
+        static_cast<double>(uvms_world[agent_id].current_position[7]),
+        static_cast<double>(uvms_world[agent_id].current_position[8]),
+        static_cast<double>(uvms_world[agent_id].current_position[9])
+    );
+
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
                                           uvms_world[agent_id].current_position.end());
 
@@ -156,6 +173,13 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
+    uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 2.0, 2.0, 2.0, 1.0};
+    uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
+    uvms_world[agent_id].Kd = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1};
+
+    uvms_world[agent_id].u_min = {-1, -1, -1, -5, -5, -1, -2.83664, -0.629139, -0.518764, -0.54};
+    uvms_world[agent_id].u_max = {1, 1, 2, 5, 5, 1, 2.83664, 0.629139, 0.518764, 0.54};
+
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
     // Calculate the starting index for the current agent's data in the uvms_commands
@@ -170,7 +194,7 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
 
     depth = casadi::DM(uvms_world[agent_id].current_position[2]);
     uv_G_argument = {depth, casadi::DM({uvms_world[agent_id].current_position[3], uvms_world[agent_id].current_position[4], uvms_world[agent_id].current_position[5]}),
-                     112.81500000000001, 114.8, blue_rg, blue_rb};
+                     vehicle_parameters[1], vehicle_parameters[2], blue_rg, blue_rb};
     uv_g = fun_service.uv_G(uv_G_argument);
 
     uv_J_ned_argument = {casadi::DM({uvms_world[agent_id].current_position[3],
@@ -225,7 +249,6 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     uvms_state.insert(uvms_state.end(), arm_position_.begin(), arm_position_.end() - 1);
     uvms_state.insert(uvms_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_state.insert(uvms_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
-
 
     int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
@@ -349,7 +372,6 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
                                          uvms_world[agent_id].current_velocity.begin() + 6);
 
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> arm_state;
     arm_state.reserve(8);
@@ -357,29 +379,24 @@ void casadi_uvms::Dynamics::simulate(
     arm_state.insert(arm_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
     std::vector<casadi::DM> arm_torques_(uvms_world[agent_id].force_input.begin() + 6,
-                                         uvms_world[agent_id].force_input.end() -1);
+                                         uvms_world[agent_id].force_input.end() - 1);
 
-    std::vector<double> q_min = { 1, 0.01, 0.01, 0.01};
-    std::vector<double> q_max = { 5.50, 3.40, 3.40, 5.70};
+    std::vector<double> q_min = {1, 0.01, 0.01, 0.01};
+    std::vector<double> q_max = {5.50, 3.40, 3.40, 5.70};
 
     arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     arm_base_f_ext = arm_sim.at(1).nonzeros();
 
-    if (uvms_world[agent_id].prefix == "robot_real_") {
-        arm_base_f_ext = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    };
-    
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> uv_state;
     uv_state.reserve(12);
     uv_state.insert(uv_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
     uv_state.insert(uv_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
 
-
     std::vector<casadi::DM> uv_forces_(uvms_world[agent_id].force_input.begin(),
-                                         uvms_world[agent_id].force_input.end() - 5);
+                                       uvms_world[agent_id].force_input.end() - 5);
 
     vehicle_simulate_argument = {uv_state, uv_forces_, vehicle_parameters, dt, arm_base_f_ext};
     vehicle_sim = fun_service.uv_dynamics(vehicle_simulate_argument);
@@ -402,7 +419,7 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].next_velocity[0] = vehicle_next_states[6];
     uvms_world[agent_id].next_velocity[1] = vehicle_next_states[7];
     uvms_world[agent_id].next_velocity[2] = vehicle_next_states[8];
-    
+
     uvms_world[agent_id].next_velocity[3] = vehicle_next_states[9];
     uvms_world[agent_id].next_velocity[4] = vehicle_next_states[10];
     uvms_world[agent_id].next_velocity[5] = vehicle_next_states[11];
