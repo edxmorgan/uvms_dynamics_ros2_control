@@ -43,8 +43,6 @@ namespace casadi_uvms
 
         std::vector<double> arm_base_f_ext;
 
-        std::vector<DM> uvms_simulate_argument;
-        std::vector<DM> uvms_sim;
         std::vector<double> next_states;
 
         std::vector<DM> joint_q_arg;
@@ -56,14 +54,15 @@ namespace casadi_uvms
         double base_gravity;
         std::vector<DM> uv_G_argument;
         std::vector<DM> uv_g;
+
         std::vector<DM> uv_J_ned_argument;
         std::vector<DM> uv_J_ned;
 
-        std::vector<DM> uvms_J_ned_argument;
-        std::vector<DM> uvms_J_ned;
+        std::vector<DM> uv_J_REF_ned_argument;
+        std::vector<DM> uv_J_REF_ned;
 
-        std::vector<DM> uvms_J_REF_ned_argument;
-        std::vector<DM> uvms_J_REF_ned;
+        casadi::DM arm_J_ned;
+        casadi::DM arm_J_REF_ned;
 
         casadi::DM is_coupled;
         std::vector<casadi::DM> base_To;
@@ -72,15 +71,33 @@ namespace casadi_uvms
         tf2::Quaternion q_orig_base;
 
         double time_seconds;
-        std::vector<DM> dynamics_argument;
-        std::vector<DM> uvms_H_;
-        casadi::DM inv_uvms_H_;
-        std::vector<DM> uvms_B_;
-        std::vector<DM> optimal_command;
-        casadi::DM optimal_control_params;
-        std::vector<DM> opt_control_argument;
+        std::vector<DM> arm_H_argument;
+        std::vector<DM> arm_B_argument;
+
+        std::vector<DM> vehicle_H_argument;
+        std::vector<DM> vehicle_B_argument;
+
+        std::vector<DM> arm_H_;
+        casadi::DM inv_arm_H_;
+        std::vector<DM> arm_B_;
+
+        std::vector<DM> uv_H_;
+        casadi::DM inv_uv_H_;
+        std::vector<DM> uv_B_;
+
+        std::vector<DM> arm_optimal_command;
+        casadi::DM arm_optimal_control_params;
+        std::vector<DM> arm_opt_control_argument;
+
+        std::vector<DM> uv_optimal_command;
+        casadi::DM uv_optimal_control_params;
+        std::vector<DM> uv_opt_control_argument;
+
+        std::vector<DM> arm_f_base_argument;
+        std::vector<DM> base_force;
         std::vector<double> joint_min;
-        std::vector<double> joint_max;    
+        std::vector<double> joint_max;
+        std::vector<double> arm_noise;
 
 
 

@@ -28,17 +28,19 @@ namespace casadi_uvms
 
     public:
         Function tester; // uvms casadi tester
-        Function uvms_dynamics; // uvms dynamics
         Function uv_dynamics; // standalone uv dynamics
         Function arm_dynamics; // arm standalone dynamics
         Function forward_kinematics; // forward kinematics
         Function pid_controller; // whole-body PID controller
         Function uv_G; // restoring force acting on uv
         Function uv_J_ned; //NED Transform matrix
-        Function uvms_H; // uvms inertia matrix dynamics
-        Function uvms_B; // uvms bias vector dynamics
-        Function uvms_J_ned; //NED Transform matrix for whole-body
-        Function uvms_optimal_controller; // whole-body optimal controller
+        Function arm_H; // arm inertia matrix dynamics
+        Function arm_B; // arm bias vector dynamics
+        Function vehicle_H; // uv inertia matrix dynamics
+        Function vehicle_B; // uv bias vector dynamics
+        Function uv_optimal_controller; // uv optimal controller
+        Function arm_optimal_controller; // arm optimal controller
+        Function f_base; // force at base
         FunctionLoader() = default;
 
         void usage_cplusplus_checks(const std::string &name, const std::string &bin_name, const std::string &node_name);
