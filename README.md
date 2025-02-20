@@ -41,7 +41,7 @@ uvms_controller:
 
     alpha:
       name_space: alpha
-      base_TF_translation: [0.140, 0.000, -0.120]
+      base_TF_translation: [0.190, 0.000, -0.120]
       base_TF_rotation: [3.142, 0.000, 0.000]
 
     floating_base:

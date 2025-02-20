@@ -58,7 +58,7 @@ void casadi_uvms::Dynamics::init_dynamics()
                           0.00000e+00, 0.00000e+00, 0.00000e+00, 0.00000e+00,
                           0.00000e+00};
 
-    base_To = {3.142, 0.0, 0.0, 0.14, 0.0, -0.12};
+    base_To = {3.142, 0.0, 0.0, 0.19, 0.0, -0.12};
 
     joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
@@ -74,7 +74,7 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     const rclcpp::Duration & /*period*/,
     int &agent_id)
 {
-    DM base_T = DM::vertcat({DM(3.142), DM(0.000), DM(0.000), DM(0.140), DM(0.000), DM(-0.120)});
+    DM base_T = DM::vertcat({DM(3.142), DM(0.000), DM(0.000), DM(0.190), DM(0.000), DM(-0.120)});
 
     double x = uvms_world[agent_id].current_position[0];
     double y = uvms_world[agent_id].current_position[1];
