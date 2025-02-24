@@ -495,7 +495,7 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
 };
 
 void casadi_uvms::Dynamics::simulate(
-    const rclcpp::Logger & /*logger*/,
+    const rclcpp::Logger & logger,
     const rclcpp::Clock::SharedPtr & /*clock*/,
     const rclcpp::Time & /*time*/,
     const rclcpp::Duration & /*period*/,
@@ -570,19 +570,19 @@ void casadi_uvms::Dynamics::simulate(
     uvms_world[agent_id].next_velocity[8] = arm_next_states[6];
     uvms_world[agent_id].next_velocity[9] = arm_next_states[7];
 
-    // RCLCPP_INFO(
-    //     logger,
-    //     "Got velocity commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
-    //     uvms_world[agent_id].next_velocity[0],
-    //     uvms_world[agent_id].next_velocity[1],
-    //     uvms_world[agent_id].next_velocity[2],
-    //     uvms_world[agent_id].next_velocity[3],
-    //     uvms_world[agent_id].next_velocity[4],
-    //     uvms_world[agent_id].next_velocity[5],
-    //     uvms_world[agent_id].next_velocity[6],
-    //     uvms_world[agent_id].next_velocity[7],
-    //     uvms_world[agent_id].next_velocity[8],
-    //     uvms_world[agent_id].next_velocity[9]);
+    RCLCPP_DEBUG(
+        logger,
+        "Got velocity commands: %f,%f,%f,%f,  %f,%f,%f,%f,  %f,%f",
+        uvms_world[agent_id].next_velocity[0],
+        uvms_world[agent_id].next_velocity[1],
+        uvms_world[agent_id].next_velocity[2],
+        uvms_world[agent_id].next_velocity[3],
+        uvms_world[agent_id].next_velocity[4],
+        uvms_world[agent_id].next_velocity[5],
+        uvms_world[agent_id].next_velocity[6],
+        uvms_world[agent_id].next_velocity[7],
+        uvms_world[agent_id].next_velocity[8],
+        uvms_world[agent_id].next_velocity[9]);
 };
 
 // Helper function implementation
