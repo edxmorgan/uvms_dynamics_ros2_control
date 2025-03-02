@@ -99,7 +99,7 @@ namespace uvms_controller
 
     std::vector<std::string> command_interface_types_;
     std::vector<std::string> state_interface_types_;
-    std::string last_command_type_;
+    std::vector<std::string> last_command_type_;
     size_t n;
 
   private:

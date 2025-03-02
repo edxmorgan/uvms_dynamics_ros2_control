@@ -208,21 +208,20 @@ namespace uvms_controller
 
         RCLCPP_INFO(get_node()->get_logger(), "uvms pose size %lu", uvms.current_position.size());
 
-        RCLCPP_INFO(get_node()->get_logger(), "uvms pose initialized with %f %f %f %f %f %f  %f %f %f %f %f", 
-        uvms.current_position[0],
-        uvms.current_position[1],
-        uvms.current_position[2],
+        RCLCPP_INFO(get_node()->get_logger(), "uvms pose initialized with %f %f %f %f %f %f  %f %f %f %f %f",
+                    uvms.current_position[0],
+                    uvms.current_position[1],
+                    uvms.current_position[2],
 
-        uvms.current_position[3],
-        uvms.current_position[4],
-        uvms.current_position[5],
+                    uvms.current_position[3],
+                    uvms.current_position[4],
+                    uvms.current_position[5],
 
-        uvms.current_position[6],
-        uvms.current_position[7],
-        uvms.current_position[8],
-        uvms.current_position[9],
-        uvms.current_position[10]
-        );
+                    uvms.current_position[6],
+                    uvms.current_position[7],
+                    uvms.current_position[8],
+                    uvms.current_position[9],
+                    uvms.current_position[10]);
       }
       else
       {
@@ -233,7 +232,7 @@ namespace uvms_controller
         uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
       }
 
-      if ((*uvms_commands)->command_type == "force")
+      if ((*uvms_commands)->command_type.at(uvms.id) == "force")
       {
         result = model_dynamics.force_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
       };
@@ -242,7 +241,7 @@ namespace uvms_controller
         return result;
       };
 
-      if ((*uvms_commands)->command_type == "pid")
+      if ((*uvms_commands)->command_type.at(uvms.id) == "pid")
       {
         result = model_dynamics.pid_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
       };
@@ -251,7 +250,7 @@ namespace uvms_controller
         return result;
       };
 
-      if ((*uvms_commands)->command_type == "optimal")
+      if ((*uvms_commands)->command_type.at(uvms.id) == "optimal")
       {
         result = model_dynamics.optimal_controller((*uvms_commands), get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
       };
@@ -260,7 +259,8 @@ namespace uvms_controller
         return result;
       };
 
-      if (uvms.prefix != "robot_real_") {
+      if (uvms.prefix != "robot_real_")
+      {
         model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
       };
 
@@ -327,7 +327,7 @@ namespace uvms_controller
       const rclcpp::Logger &logger,
       const rclcpp::Clock::SharedPtr &clock)
   {
-    // Use logger and clock directly
+    // If no commands were received, create a default one.
     if (!uvms_commands)
     {
       RCLCPP_ERROR_THROTTLE(
@@ -337,86 +337,118 @@ namespace uvms_controller
       // Create a default command
       auto default_command = std::make_shared<casadi_uvms::CmdType>();
       default_command->force.data.resize(expected_command_size, 0.0);
-      default_command->command_type = "force";
+      // Initialize the command_type vector for each command with "force"
+      default_command->command_type.resize(n, std::string("force"));
       uvms_commands = default_command;
     }
 
-    // Ensure the command type is valid
-    if (uvms_commands->command_type != "pid" &&
-        uvms_commands->command_type != "optimal" &&
-        uvms_commands->command_type != "force")
+    if (uvms_commands->command_type.size() != n)
     {
-      last_command_type_ = "";
       RCLCPP_ERROR_THROTTLE(
           logger, *clock, 1000,
-          "Unsupported command type: '%s'",
-          uvms_commands->command_type.c_str());
-      return controller_interface::return_type::ERROR;
-    }
-
-    // Log the command type every time it changes using RCLCPP_INFO_FUNCTION
-    if (uvms_commands->command_type != last_command_type_)
-    {
-      RCLCPP_INFO(
-          logger,
-          "Received command type: '%s'",
-          uvms_commands->command_type.c_str());
-      last_command_type_ = uvms_commands->command_type;
+          "number of controllers does not match the number of simulation robots.");
     }
 
     bool size_mismatch = false;
     std::string mismatched_field;
-    // Change the type from int to std::size_t
-    std::size_t recieved_size;
+    std::size_t received_size = 0;
 
-    if (uvms_commands->command_type == "force" && uvms_commands->force.data.size() != expected_command_size)
+    // Validate each element in command_type.
+    for (const auto &cmd : uvms_commands->command_type)
     {
-      size_mismatch = true;
-      mismatched_field = "force";
-      recieved_size = uvms_commands->force.data.size();
+      if (cmd != "pid" && cmd != "optimal" && cmd != "force")
+      {
+        // Clear the last command type if an unsupported command is encountered.
+        last_command_type_.clear();
+        RCLCPP_ERROR_THROTTLE(
+            logger, *clock, 1000,
+            "Unsupported command type: '%s'",
+            cmd.c_str());
+        return controller_interface::return_type::ERROR;
+      }
+
+      // Validate the numeric arrays based on the common command type.
+      if (cmd == "force")
+      {
+        if (uvms_commands->force.data.size() != expected_command_size)
+        {
+          size_mismatch = true;
+          mismatched_field = "force";
+          received_size = uvms_commands->force.data.size();
+        }
+      }
+      else if (cmd == "pid")
+      {
+        if (uvms_commands->pose.data.size() != expected_command_size)
+        {
+          size_mismatch = true;
+          mismatched_field = "pose";
+          received_size = uvms_commands->pose.data.size();
+        }
+      }
+      else if (cmd == "optimal")
+      {
+        if (uvms_commands->pose.data.size() != expected_command_size)
+        {
+          size_mismatch = true;
+          mismatched_field = "pose";
+          received_size = uvms_commands->pose.data.size();
+        }
+        else if (uvms_commands->twist.data.size() != expected_command_size)
+        {
+          size_mismatch = true;
+          mismatched_field = "twist";
+          received_size = uvms_commands->twist.data.size();
+        }
+        else if (uvms_commands->acceleration.data.size() != expected_command_size)
+        {
+          size_mismatch = true;
+          mismatched_field = "acceleration";
+          received_size = uvms_commands->acceleration.data.size();
+        }
+      }
     }
-    else if (uvms_commands->command_type == "pid" && uvms_commands->pose.data.size() != expected_command_size)
+    // Helper lambda to join vector<string> into a single string.
+    auto join_vector = [](const std::vector<std::string> &vec, const std::string &sep = ", ") -> std::string
     {
-      size_mismatch = true;
-      mismatched_field = "pose";
-      recieved_size = uvms_commands->pose.data.size();
-    }
-    else if (uvms_commands->command_type == "optimal")
+      std::string result;
+      for (size_t i = 0; i < vec.size(); ++i)
+      {
+        result += vec[i];
+        if (i != vec.size() - 1)
+        {
+          result += sep;
+        }
+      }
+      return result;
+    };
+
+    // Convert command_type vector to a string for logging.
+    std::string command_type_str = join_vector(uvms_commands->command_type);
+
+    // Log the command type if it has changed.
+    if (uvms_commands->command_type != last_command_type_)
     {
-      if (uvms_commands->pose.data.size() != expected_command_size)
-      {
-        size_mismatch = true;
-        mismatched_field = "pose";
-        recieved_size = uvms_commands->pose.data.size();
-      }
-      else if (uvms_commands->twist.data.size() != expected_command_size)
-      {
-        size_mismatch = true;
-        mismatched_field = "twist";
-        recieved_size = uvms_commands->twist.data.size();
-      }
-      else if (uvms_commands->acceleration.data.size() != expected_command_size)
-      {
-        size_mismatch = true;
-        mismatched_field = "acceleration";
-        recieved_size = uvms_commands->acceleration.data.size();
-      }
+      RCLCPP_INFO(
+          logger,
+          "Received list of command types: '[%s]'",
+          command_type_str.c_str());
+      last_command_type_ = uvms_commands->command_type;
     }
 
     if (size_mismatch)
     {
       RCLCPP_ERROR_THROTTLE(
           logger, *clock, 1000,
-          "Command type '%s' expects %zu elements in '%s', but received %zu.",
-          uvms_commands->command_type.c_str(),
+          "Command type '[%s]' expects %zu elements in '%s', but received %zu.",
+          command_type_str.c_str(),
           expected_command_size,
           mismatched_field.c_str(),
-          recieved_size
-      );
+          received_size);
 
       return controller_interface::return_type::ERROR;
     }
-
+    // Return OK if no errors are found.
     return controller_interface::return_type::OK;
-  };
+  }
 } // namespace uvms_controller

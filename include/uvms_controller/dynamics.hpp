@@ -171,6 +171,8 @@ namespace casadi_uvms
             const rclcpp::Time &time,
             const rclcpp::Duration &period,
             int &agent_id);
+            
+        std::string matrixToString(const casadi::Matrix<double>& mat);
 
         controller_interface::return_type pid_controller(
             std::shared_ptr<CmdType> &uvms_commands,

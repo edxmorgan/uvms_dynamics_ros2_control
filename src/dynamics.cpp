@@ -459,9 +459,9 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     vehicle_states.insert(vehicle_states.end(), vehicle_position_state.begin(), vehicle_position_state.end());
     vehicle_states.insert(vehicle_states.end(), vehicle_velocity_state.begin(), vehicle_velocity_state.end());
 
-    std::vector<casadi::DM> vehicle_q_ref(uvms_world[agent_id].XF.begin() , uvms_world[agent_id].XF.begin()+ 6);
-    std::vector<casadi::DM> vehicle_dq_ref(uvms_world[agent_id].VF.begin(), uvms_world[agent_id].VF.begin()+ 6);
-    std::vector<casadi::DM> vehicle_ddq_ref(uvms_world[agent_id].AF.begin(), uvms_world[agent_id].AF.begin()+ 6);
+    std::vector<casadi::DM> vehicle_q_ref(uvms_world[agent_id].XF.begin(), uvms_world[agent_id].XF.begin() + 6);
+    std::vector<casadi::DM> vehicle_dq_ref(uvms_world[agent_id].VF.begin(), uvms_world[agent_id].VF.begin() + 6);
+    std::vector<casadi::DM> vehicle_ddq_ref(uvms_world[agent_id].AF.begin(), uvms_world[agent_id].AF.begin() + 6);
 
     std::vector<casadi::DM> vehicle_u_min(uvms_world[agent_id].u_min.begin(), uvms_world[agent_id].u_min.begin() + 6);
     std::vector<casadi::DM> vehicle_u_max(uvms_world[agent_id].u_max.begin(), uvms_world[agent_id].u_max.begin() + 6);
@@ -472,8 +472,8 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
         inv_uv_H_,
         uv_H_.at(0),
         uv_B_.at(0),
-        vehicle_q_ref, // q_ref
-        vehicle_dq_ref, // dq_ref
+        vehicle_q_ref,   // q_ref
+        vehicle_dq_ref,  // dq_ref
         vehicle_ddq_ref, // ddq_ref
         uv_J_ned.at(0),
         uv_J_REF_ned.at(0),
@@ -486,7 +486,6 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     std::copy(uv_optimal_command[0].nonzeros().begin(), uv_optimal_command[0].nonzeros().end(),
               uvms_world[agent_id].force_input.begin());
 
-
     uvms_world[agent_id].lyapunov_energy += uv_optimal_command.at(1).nonzeros()[0];
     // Log the current Lyapunov energy
     RCLCPP_DEBUG(logger, "Agent %d Lyapunov energy: %f", agent_id, uvms_world[agent_id].lyapunov_energy);
@@ -494,13 +493,33 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     return controller_interface::return_type::OK;
 };
 
+std::string casadi_uvms::Dynamics::matrixToString(const casadi::Matrix<double> &mat)
+{
+    std::stringstream ss;
+    for (int i = 0; i < mat.size1(); i++)
+    {
+        for (int j = 0; j < mat.size2(); j++)
+        {
+            ss << mat(i, j) << " ";
+        }
+        ss << "\n";
+    }
+    return ss.str();
+
+    // use like this
+    //  // / Convert the first matrix to a string and log it.
+    //  std::string matStr = matrixToString(uv_J_ned_test.at(0));
+    //  RCLCPP_INFO(logger, "uv_J_ned_test[0]: \n%s", matStr.c_str());
+}
+
 void casadi_uvms::Dynamics::simulate(
-    const rclcpp::Logger & logger,
+    const rclcpp::Logger &logger,
     const rclcpp::Clock::SharedPtr & /*clock*/,
     const rclcpp::Time & /*time*/,
     const rclcpp::Duration & /*period*/,
     int &agent_id)
 {
+
     std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
                                           uvms_world[agent_id].current_position.end());
 
