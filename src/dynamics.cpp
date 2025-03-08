@@ -62,7 +62,7 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
-    gravity = 9.81;
+    gravity = 0.0;
     base_gravity = 0.0; //-3.81;
     arm_noise = {0.0, 0.0, 0.0, 0.0};
 };
@@ -544,7 +544,9 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<double> q_min(joint_min.begin() + 6, joint_min.begin() + 10);
     std::vector<double> q_max(joint_max.begin() + 6, joint_max.begin() + 10);
 
-    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To};
+    std::vector<casadi::DM> noise = {0.0, 0.0, 0.0, 0.0};
+
+    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To, noise};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     arm_base_f_ext = arm_sim.at(1).nonzeros();
