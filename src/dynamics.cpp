@@ -62,8 +62,8 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
-    gravity = 0.0;
-    base_gravity = 0.0; //-3.81;
+    gravity = 9000.81;
+    base_gravity = 0.0;
     arm_noise = {0.0, 0.0, 0.0, 0.0};
 };
 
@@ -175,6 +175,10 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_velocity_state.reserve(10);
     uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
+
+    // uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.2086,1.2665,1.1592,0.9121};
+    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    // uvms_world[agent_id].Kd = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 2.0, 2.0, 2.0, 1.0};
     uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
@@ -546,11 +550,16 @@ void casadi_uvms::Dynamics::simulate(
 
     std::vector<casadi::DM> noise = {0.0, 0.0, 0.0, 0.0};
 
-    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To, noise};
+    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_To, noise};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     arm_base_f_ext = arm_sim.at(1).nonzeros();
 
+    arm_base_f_ext[1] = -arm_base_f_ext[1];
+    arm_base_f_ext[2] = -arm_base_f_ext[2];
+    
+    arm_base_f_ext[4] = -arm_base_f_ext[4];
+    arm_base_f_ext[5] = -arm_base_f_ext[5];
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> uv_state;
     uv_state.reserve(12);
