@@ -193,6 +193,15 @@ namespace uvms_controller
 
           uvms.current_position = get_state_values(it->poseSubscriber, 11);
           uvms.current_velocity = get_state_values(it->velSubscriber, 11);
+
+          // Randomize the x and y components of the current position
+          std::random_device rd;
+          std::mt19937 gen(rd());
+          std::uniform_real_distribution<> dis_x(-10.0, 10.0); // Range for x position
+          std::uniform_real_distribution<> dis_y(-10.0, 10.0); // Range for y position
+
+          uvms.current_position[0] = dis_x(gen);
+          uvms.current_position[1] = dis_y(gen);
         }
         else
         {
@@ -263,7 +272,6 @@ namespace uvms_controller
       // {
       // };
       model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
-     
 
       std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
 
