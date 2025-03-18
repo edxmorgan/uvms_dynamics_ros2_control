@@ -553,13 +553,14 @@ void casadi_uvms::Dynamics::simulate(
     arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_To, noise};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
-    arm_base_f_ext = arm_sim.at(1).nonzeros();
+    // arm_base_f_ext = arm_sim.at(1).nonzeros();
 
-    arm_base_f_ext[1] = -arm_base_f_ext[1];
-    arm_base_f_ext[2] = -arm_base_f_ext[2];
+    // arm_base_f_ext[1] = -arm_base_f_ext[1];
+    // arm_base_f_ext[2] = -arm_base_f_ext[2];
     
-    arm_base_f_ext[4] = -arm_base_f_ext[4];
-    arm_base_f_ext[5] = -arm_base_f_ext[5];
+    // arm_base_f_ext[4] = -arm_base_f_ext[4];
+    // arm_base_f_ext[5] = -arm_base_f_ext[5];
+    arm_base_f_ext = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     ////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> uv_state;
     uv_state.reserve(12);
