@@ -561,7 +561,7 @@ void casadi_uvms::Dynamics::simulate(
     // arm_base_f_ext[4] = -arm_base_f_ext[4];
     // arm_base_f_ext[5] = -arm_base_f_ext[5];
     arm_base_f_ext = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<casadi::DM> uv_state;
     uv_state.reserve(12);
     uv_state.insert(uv_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
