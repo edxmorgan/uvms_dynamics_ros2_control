@@ -1,0 +1,108 @@
+uvms_controller:
+  agents:
+    type: string_array
+    description: "specifies agents to spawn in simulator."
+    read_only: true
+    validation:
+      not_empty<>: []
+      unique<>: []
+
+  joints:
+    type: string_array
+    description: "specifies which joints will be used by the controller."
+    read_only: true
+    validation:
+      not_empty<>: []
+      fixed_size<>: [6]
+      unique<>: []
+      subset_of<>: [[floating_base, joint0, joint1, joint2, joint3, endeffector]]
+
+  __map_agents:
+    prefix:
+      type: string
+      description: "maps prefix to joints"
+      read_only: true
+      validation:
+        not_empty<>: null
+
+    base_TF_translation:
+      type: double_array
+      description: "specifies transformation from vehicle base to manipulator base"
+      read_only: true
+      validation:
+        not_empty<>: []
+        fixed_size<>: [3]
+
+    base_TF_rotation:
+      type: double_array
+      description: "specifies transformation from vehicle base to manipulator base"
+      read_only: true
+      validation:
+        not_empty<>: []
+        fixed_size<>: [3]
+
+  __map_joints:
+    name:
+      type: string
+      description: "maps to the joints used in the dynamics calculation"
+      read_only: true
+      validation:
+        not_empty<>: null
+
+    pose_topic_interface:
+      type: string_array
+      description: "subscribe_ position map parameter with struct name"
+      read_only: true
+      validation:
+        not_empty<>: []
+        unique<>: []
+        size_lt<>: [8]
+
+    velocity_topic_interface:
+      type: string_array
+      description: "subscribe_ velocity map parameter with struct name"
+      read_only: true
+      validation:
+        not_empty<>: []
+        unique<>: []
+        size_lt<>: [7]
+
+    acceleration_topic_interface:
+      type: string_array
+      description: "subscribe_ acceleration map parameter with struct name"
+      read_only: true
+
+    pose_command_interface:
+      type: string_array
+      description: "publish_ position map parameter with struct name"
+      read_only: true
+      validation:
+        not_empty<>: []
+        unique<>: []
+        size_lt<>: [8]
+
+    velocity_command_interface:
+      type: string_array
+      description: "publish_ velocity map parameter with struct name"
+      read_only: true
+      validation:
+        not_empty<>: []
+        unique<>: []
+        size_lt<>: [7]
+
+    acceleration_command_interface:
+      type: string_array
+      description: "publish_ acceleration map parameter with struct name"
+      read_only: true
+
+    effort_command_interface:
+      type: string_array
+      description: "effort map parameter with struct name"
+      read_only: true
+      validation:
+        not_empty<>: []
+        unique<>: []
+        size_lt<>: [9]
+
+ 
+

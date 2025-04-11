@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>uvms_controller</name>
+  <version>4.5.0</version>
+  <description>Providing Underwater vehicle and manipulator system dynamics and controls capabilities in ros2_controller</description>
+  <maintainer email="emorg31@lsu.edu">Edward Morgan</maintainer>
+
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>backward_ros</depend>
+  <depend>controller_interface</depend>
+  <depend>generate_parameter_library</depend>
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>casadi</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>realtime_tools</depend>
+  <depend>std_msgs</depend>
+  <depend>uvms_interfaces</depend>
+  <depend>tf2_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  
+  <test_depend>ament_cmake_gmock</test_depend>
+  <test_depend>controller_manager</test_depend>
+  <test_depend>hardware_interface_testing</test_depend>
+  <test_depend>ros2_control_test_assets</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

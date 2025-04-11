@@ -1,0 +1,7 @@
+<library path="uvms_controller">
+  <class name="uvms_controller/UvmsController" type="uvms_controller::UvmsController" base_class_type="controller_interface::ControllerInterface">
+  <description>
+    This controller provides uvms capabilities including dynamics and controls.
+  </description>
+  </class>
+</library>
