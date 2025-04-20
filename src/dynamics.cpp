@@ -13,31 +13,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 #include "uvms_controller/dynamics.hpp"
 #include <sstream> // For std::ostringstream
 
 #if __has_include("uvms_controller/dynamics_params.hpp")
 //   #pragma message("Private parameters enabled (header found)")
-  #include "uvms_controller/dynamics_params.hpp"
+#include "uvms_controller/dynamics_params.hpp"
 #else
-    //   #pragma message("Fallback parameters used")
-    const std::vector<casadi::DM> private_vehicle_parameters = {1.15000e+01, 1.12815e+02, 1.14800e+02, 0.00000e+00,
-        0.00000e+00, 2.00000e-02, 0.00000e+00, 0.00000e+00,
-        0.00000e+00, 1.60000e-01, 1.60000e-01, 1.60000e-01,
-        0.00000e+00, -5.50000e+00, -1.27000e+01, -1.45700e+01,
-        -1.20000e-01, -1.20000e-01, -1.20000e-01, 0.00000e+00,
-        0.00000e+00, 0.00000e+00, 0.00000e+00, -4.03000e+00,
-        -6.22000e+00, -5.18000e+00, -7.00000e-02, -7.00000e-02,
-        -7.00000e-02, -1.81800e+01, -2.16600e+01, -3.69900e+01,
-        -1.55000e+00, -1.55000e+00, -1.55000e+00, 3.00000e+00,
-        1.00000e+00, 1.00000e+00, 1.00000e+00, 1.00000e+00,
-        1.00000e+00, 1.00000e+00, 0.00000e+00, 0.00000e+00,
-        0.00000e+00, 0.00000e+00, 0.00000e+00, 0.00000e+00,
-        0.00000e+00, 0.00000e+00, 0.00000e+00, 0.00000e+00,
-        0.00000e+00, 0.00000e+00};
-#endif
+//   #pragma message("Fallback parameters used")
 
+const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12815000e+02, 1.14800000e+02, 0.00000000e+00,
+                                                            0.00000000e+00, 2.00000000e-02, 0.00000000e+00, 0.00000000e+00,
+                                                            0.00000000e+00, 1.60000000e-01, 1.60000000e-01, 1.60000000e-01,
+                                                            0.00000000e+00, -5.50000000e+00, -1.27000000e+01, -1.45700000e+01,
+                                                            -1.20000000e-01, -1.20000000e-01, -1.20000000e-01, 0.00000000e+00,
+                                                            0.00000000e+00, 0.00000000e+00, 0.00000000e+00, -4.03000000e+00,
+                                                            -6.22000000e+00, -5.18000000e+00, -7.00000000e-02, -7.00000000e-02,
+                                                            -7.00000000e-02, -1.81800000e+01, -2.16600000e+01, -3.69900000e+01,
+                                                            -1.55000000e+00, -1.55000000e+00, -1.55000000e+00, 0.00000000e+00,
+                                                            1.00421848e+00, 1.00000000e+00, 1.00000000e+00, 1.00000000e+00,
+                                                            1.00000000e+00, 1.00000000e+00, 1.00000000e+00, 0.00000000e+00,
+                                                            0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                                                            0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
+                                                            0.00000000e+00, 0.00000000e+00, 0.00000000e+00};
+#endif
 
 void casadi_uvms::Dynamics::init_dynamics()
 {
@@ -582,6 +581,11 @@ void casadi_uvms::Dynamics::simulate(
 
     std::vector<casadi::DM> uv_forces_(uvms_world[agent_id].force_input.begin(),
                                        uvms_world[agent_id].force_input.end() - 5);
+
+    // // uv_forces_…
+    // const std::vector<std::string> labels = {"x", "y", "z", "roll", "pitch", "yaw"};
+    // double v = static_cast<double>(uv_forces_[5].scalar());
+    // RCLCPP_INFO(logger, "%s: %f", labels[5].c_str(), v);
 
     vehicle_simulate_argument = {uv_state, uv_forces_, vehicle_parameters, dt, arm_base_f_ext};
     vehicle_sim = fun_service.uv_dynamics(vehicle_simulate_argument);
