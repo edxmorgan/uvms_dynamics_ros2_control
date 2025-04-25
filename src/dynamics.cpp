@@ -188,10 +188,6 @@ controller_interface::return_type casadi_uvms::Dynamics::pid_controller(
     uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
     uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    // uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.2086,1.2665,1.1592,0.9121};
-    // uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    // uvms_world[agent_id].Kd = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-
     uvms_world[agent_id].Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 2.0, 2.0, 2.0, 1.0};
     uvms_world[agent_id].Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
     uvms_world[agent_id].Kd = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1};
