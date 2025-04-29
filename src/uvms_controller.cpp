@@ -81,8 +81,8 @@ namespace uvms_controller
       casadi_uvms::Dynamics::Model uvms_agent;
       uvms_agent.id = idx;
 
-      uvms_agent.u_min = {-1, -1, -5, -5, -5, -1, -2.83664, -0.629139, -0.518764, -0.54};
-      uvms_agent.u_max = {1, 1, 5, 5, 5, 1, 2.83664, 0.629139, 0.518764, 0.54};
+      uvms_agent.u_min = {-1, -1, -1, -5, -5, -1, -2.83664, -0.629139, -0.518764, -0.54};
+      uvms_agent.u_max = {1, 1, 2, 5, 5, 1, 2.83664, 0.629139, 0.518764, 0.54};
 
       RCLCPP_INFO(get_node()->get_logger(), "Agent --> %s", agent_.c_str());
       RCLCPP_INFO(get_node()->get_logger(), "Agent id--> %d", uvms_agent.id);

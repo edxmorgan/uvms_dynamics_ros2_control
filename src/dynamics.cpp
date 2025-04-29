@@ -36,6 +36,11 @@ const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00};
+const std::vector<casadi::DM> viscous = {5, 5, 5, 5};
+const std::vector<casadi::DM> coulomb = {0.0, 0.0, 0.0, 0.0};
+const std::vector<casadi::DM> I_Grotor = {3, 3, 3, 3};
+const casadi::DM k = 50.0;
+const casadi::DM gravity = -9.81;
 #endif
 
 void casadi_uvms::Dynamics::init_dynamics()
@@ -63,20 +68,16 @@ void casadi_uvms::Dynamics::init_dynamics()
     fun_service.f_base = fun_service.load_casadi_fun("F_base_", "libF_base.so");
     is_coupled = 0;
 
-    manipulator_parameters = {2253.54, 2253.54, 2253.54, 340.4,
-                              1e-06, 1e-06, 1e-06, 1e-06,
-                              0, 0, 0, 0,
-                              2.5, 2.6, 1.7, 0.2,
-                              0, 0, 0, 0,
-                              4.0, 1.9, 1.3, 1.0};
+    manipulator_parameters = {k};
+    manipulator_parameters.insert(manipulator_parameters.end(), viscous.begin(), viscous.end());
+    manipulator_parameters.insert(manipulator_parameters.end(), coulomb.begin(), coulomb.end());
+    manipulator_parameters.insert(manipulator_parameters.end(), I_Grotor.begin(), I_Grotor.end());
+
     vehicle_parameters = private_vehicle_parameters;
     base_To = {3.142, 0.0, 0.0, 0.19, 0.0, -0.12};
 
     joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
     joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
-    gravity = 9000.81;
-    base_gravity = 0.0;
-    arm_noise = {0.0, 0.0, 0.0, 0.0};
 };
 // -DUSE_PRIVATE_PARAMS
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -243,264 +244,265 @@ controller_interface::return_type casadi_uvms::Dynamics::optimal_controller(
     const rclcpp::Duration & /*period*/,
     int &agent_id)
 {
-    // Ensure force_input has 11 elements, all initialized to zero.
-    uvms_world[agent_id].force_input.assign(11, 0);
-    time_seconds = time.seconds();
-    std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
-                                          uvms_world[agent_id].current_position.end());
+    // to be fixed
+    // // Ensure force_input has 11 elements, all initialized to zero.
+    // uvms_world[agent_id].force_input.assign(11, 0);
+    // time_seconds = time.seconds();
+    // std::vector<casadi::DM> arm_position_(uvms_world[agent_id].current_position.end() - 5,
+    //                                       uvms_world[agent_id].current_position.end());
 
-    std::vector<casadi::DM> arm_velocity_(uvms_world[agent_id].current_velocity.end() - 5,
-                                          uvms_world[agent_id].current_velocity.end());
+    // std::vector<casadi::DM> arm_velocity_(uvms_world[agent_id].current_velocity.end() - 5,
+    //                                       uvms_world[agent_id].current_velocity.end());
 
-    std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
-                                          uvms_world[agent_id].current_position.begin() + 6);
+    // std::vector<casadi::DM> vehicle_pose_(uvms_world[agent_id].current_position.begin(),
+    //                                       uvms_world[agent_id].current_position.begin() + 6);
 
-    std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
-                                         uvms_world[agent_id].current_velocity.begin() + 6);
+    // std::vector<casadi::DM> vehicle_vel_(uvms_world[agent_id].current_velocity.begin(),
+    //                                      uvms_world[agent_id].current_velocity.begin() + 6);
 
-    std::vector<casadi::DM> uvms_position_state;
-    uvms_position_state.reserve(10);
-    uvms_position_state.insert(uvms_position_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
-    uvms_position_state.insert(uvms_position_state.end(), arm_position_.begin(), arm_position_.end() - 1);
+    // std::vector<casadi::DM> uvms_position_state;
+    // uvms_position_state.reserve(10);
+    // uvms_position_state.insert(uvms_position_state.end(), vehicle_pose_.begin(), vehicle_pose_.end());
+    // uvms_position_state.insert(uvms_position_state.end(), arm_position_.begin(), arm_position_.end() - 1);
 
-    std::vector<casadi::DM> uvms_velocity_state;
-    uvms_velocity_state.reserve(10);
-    uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
-    uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
+    // std::vector<casadi::DM> uvms_velocity_state;
+    // uvms_velocity_state.reserve(10);
+    // uvms_velocity_state.insert(uvms_velocity_state.end(), vehicle_vel_.begin(), vehicle_vel_.end());
+    // uvms_velocity_state.insert(uvms_velocity_state.end(), arm_velocity_.begin(), arm_velocity_.end() - 1);
 
-    int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
+    // int command_length_per_agent = static_cast<int>(uvms_world[agent_id].effortCommander.size()); // Each agent's command contains 11 elements (vehicle + manipulator)
 
-    // Calculate the starting index for the current agent's data in the uvms_commands
-    int start_index = agent_id * command_length_per_agent;
-    int end_index = start_index + command_length_per_agent;
+    // // Calculate the starting index for the current agent's data in the uvms_commands
+    // int start_index = agent_id * command_length_per_agent;
+    // int end_index = start_index + command_length_per_agent;
 
-    // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
-    uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index - 1);
-    uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index - 1);
-    uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index - 1);
+    // // Assign the 10 elements (6 vehicle reference + 4 joints reference) to uvms_world[agent_id].XF
+    // uvms_world[agent_id].XF.assign(uvms_commands->pose.data.begin() + start_index, uvms_commands->pose.data.begin() + end_index - 1);
+    // uvms_world[agent_id].VF.assign(uvms_commands->twist.data.begin() + start_index, uvms_commands->twist.data.begin() + end_index - 1);
+    // uvms_world[agent_id].AF.assign(uvms_commands->acceleration.data.begin() + start_index, uvms_commands->acceleration.data.begin() + end_index - 1);
 
-    std::vector<casadi::DM> manipulator_position_state(uvms_position_state.begin() + 6,
-                                                       uvms_position_state.end());
-    std::vector<casadi::DM> manipulator_velocity_state(uvms_velocity_state.begin() + 6,
-                                                       uvms_velocity_state.end());
+    // std::vector<casadi::DM> manipulator_position_state(uvms_position_state.begin() + 6,
+    //                                                    uvms_position_state.end());
+    // std::vector<casadi::DM> manipulator_velocity_state(uvms_velocity_state.begin() + 6,
+    //                                                    uvms_velocity_state.end());
 
-    // Build argument containers for arm_H and arm_B.
-    arm_H_argument = {manipulator_position_state,
-                      manipulator_velocity_state,
-                      manipulator_parameters,
-                      gravity};
-    arm_B_argument = {manipulator_position_state,
-                      manipulator_velocity_state,
-                      manipulator_parameters,
-                      gravity};
+    // // Build argument containers for arm_H and arm_B.
+    // arm_H_argument = {manipulator_position_state,
+    //                   manipulator_velocity_state,
+    //                   manipulator_parameters,
+    //                   gravity};
+    // arm_B_argument = {manipulator_position_state,
+    //                   manipulator_velocity_state,
+    //                   manipulator_parameters,
+    //                   gravity};
 
-    arm_H_ = fun_service.arm_H(arm_H_argument);
-    arm_B_ = fun_service.arm_B(arm_B_argument);
-    inv_arm_H_ = casadi::DM::solve(arm_H_.at(0), casadi::DM::eye(arm_H_.at(0).size1()));
+    // arm_H_ = fun_service.arm_H(arm_H_argument);
+    // arm_B_ = fun_service.arm_B(arm_B_argument);
+    // inv_arm_H_ = casadi::DM::solve(arm_H_.at(0), casadi::DM::eye(arm_H_.at(0).size1()));
 
-    arm_J_ned = casadi::DM::eye(4);
-    arm_J_REF_ned = casadi::DM::eye(4);
+    // arm_J_ned = casadi::DM::eye(4);
+    // arm_J_REF_ned = casadi::DM::eye(4);
 
-    // Define a1_v and a2_v as vectors of casadi::DM
-    std::vector<casadi::DM> arm_a1_v = {100, 100, 100, 100};
-    std::vector<casadi::DM> arm_a2_v = {0.1, 0.1, 0.1, 0.1};
+    // // Define a1_v and a2_v as vectors of casadi::DM
+    // std::vector<casadi::DM> arm_a1_v = {100, 100, 100, 100};
+    // std::vector<casadi::DM> arm_a2_v = {0.1, 0.1, 0.1, 0.1};
 
-    // Initialize a12_v and ac_v with the same size as a1_v and a2_v
-    std::vector<casadi::DM> arm_a12_v(arm_a1_v.size());
-    std::vector<casadi::DM> arm_ac_v(arm_a1_v.size());
+    // // Initialize a12_v and ac_v with the same size as a1_v and a2_v
+    // std::vector<casadi::DM> arm_a12_v(arm_a1_v.size());
+    // std::vector<casadi::DM> arm_ac_v(arm_a1_v.size());
 
-    // Perform element-wise sqrt and subtraction using casadi::sqrt
-    for (size_t i = 0; i < arm_a1_v.size(); ++i)
-    {
-        arm_a12_v[i] = casadi::DM::sqrt(arm_a1_v[i] * arm_a2_v[i]) - 1e-8;
-    }
+    // // Perform element-wise sqrt and subtraction using casadi::sqrt
+    // for (size_t i = 0; i < arm_a1_v.size(); ++i)
+    // {
+    //     arm_a12_v[i] = casadi::DM::sqrt(arm_a1_v[i] * arm_a2_v[i]) - 1e-8;
+    // }
 
-    // Perform element-wise division and multiply by 2
-    for (size_t i = 0; i < arm_a12_v.size(); ++i)
-    {
-        arm_ac_v[i] = 2 * (arm_a12_v[i] / arm_a2_v[i]);
-    }
+    // // Perform element-wise division and multiply by 2
+    // for (size_t i = 0; i < arm_a12_v.size(); ++i)
+    // {
+    //     arm_ac_v[i] = 2 * (arm_a12_v[i] / arm_a2_v[i]);
+    // }
 
-    // Define epsilon_t correctly
-    double arm_epsilon_t = 0.0;
+    // // Define epsilon_t correctly
+    // double arm_epsilon_t = 0.0;
 
-    // Prepare optimal_control_params using vertcat as a free function
-    // Flatten the vectors into a single vector of casadi::DM
-    std::vector<casadi::DM> arm_vertcat_args;
-    arm_vertcat_args.insert(arm_vertcat_args.end(), arm_a1_v.begin(), arm_a1_v.end());
-    arm_vertcat_args.insert(arm_vertcat_args.end(), arm_a2_v.begin(), arm_a2_v.end());
-    arm_vertcat_args.insert(arm_vertcat_args.end(), arm_a12_v.begin(), arm_a12_v.end());
-    arm_vertcat_args.insert(arm_vertcat_args.end(), arm_ac_v.begin(), arm_ac_v.end());
-    arm_vertcat_args.emplace_back(arm_epsilon_t); // Convert arm_epsilon_t to casadi::DM implicitly
+    // // Prepare optimal_control_params using vertcat as a free function
+    // // Flatten the vectors into a single vector of casadi::DM
+    // std::vector<casadi::DM> arm_vertcat_args;
+    // arm_vertcat_args.insert(arm_vertcat_args.end(), arm_a1_v.begin(), arm_a1_v.end());
+    // arm_vertcat_args.insert(arm_vertcat_args.end(), arm_a2_v.begin(), arm_a2_v.end());
+    // arm_vertcat_args.insert(arm_vertcat_args.end(), arm_a12_v.begin(), arm_a12_v.end());
+    // arm_vertcat_args.insert(arm_vertcat_args.end(), arm_ac_v.begin(), arm_ac_v.end());
+    // arm_vertcat_args.emplace_back(arm_epsilon_t); // Convert arm_epsilon_t to casadi::DM implicitly
 
-    arm_optimal_control_params = casadi::DM::vertcat(arm_vertcat_args);
+    // arm_optimal_control_params = casadi::DM::vertcat(arm_vertcat_args);
 
-    // Convert optimal_control_params to string using the helper function
-    std::string arm_params_str = dm_to_string(arm_optimal_control_params);
+    // // Convert optimal_control_params to string using the helper function
+    // std::string arm_params_str = dm_to_string(arm_optimal_control_params);
 
-    // Log the optimal_control_params correctly
-    RCLCPP_DEBUG(
-        logger,
-        "Got optimal parameters: %s",
-        arm_params_str.c_str());
+    // // Log the optimal_control_params correctly
+    // RCLCPP_DEBUG(
+    //     logger,
+    //     "Got optimal parameters: %s",
+    //     arm_params_str.c_str());
 
-    std::vector<casadi::DM> manipulator_states;
-    manipulator_states.reserve(8);
-    manipulator_states.insert(manipulator_states.end(), manipulator_position_state.begin(), manipulator_position_state.end());
-    manipulator_states.insert(manipulator_states.end(), manipulator_velocity_state.begin(), manipulator_velocity_state.end());
+    // std::vector<casadi::DM> manipulator_states;
+    // manipulator_states.reserve(8);
+    // manipulator_states.insert(manipulator_states.end(), manipulator_position_state.begin(), manipulator_position_state.end());
+    // manipulator_states.insert(manipulator_states.end(), manipulator_velocity_state.begin(), manipulator_velocity_state.end());
 
-    std::vector<casadi::DM> arm_q_ref(uvms_world[agent_id].XF.begin() + 6, uvms_world[agent_id].XF.end());
-    std::vector<casadi::DM> arm_dq_ref(uvms_world[agent_id].VF.begin() + 6, uvms_world[agent_id].VF.end());
-    std::vector<casadi::DM> arm_ddq_ref(uvms_world[agent_id].AF.begin() + 6, uvms_world[agent_id].AF.end());
+    // std::vector<casadi::DM> arm_q_ref(uvms_world[agent_id].XF.begin() + 6, uvms_world[agent_id].XF.end());
+    // std::vector<casadi::DM> arm_dq_ref(uvms_world[agent_id].VF.begin() + 6, uvms_world[agent_id].VF.end());
+    // std::vector<casadi::DM> arm_ddq_ref(uvms_world[agent_id].AF.begin() + 6, uvms_world[agent_id].AF.end());
 
-    std::vector<casadi::DM> arm_u_min(uvms_world[agent_id].u_min.begin() + 6, uvms_world[agent_id].u_min.end());
-    std::vector<casadi::DM> arm_u_max(uvms_world[agent_id].u_max.begin() + 6, uvms_world[agent_id].u_max.end());
+    // std::vector<casadi::DM> arm_u_min(uvms_world[agent_id].u_min.begin() + 6, uvms_world[agent_id].u_min.end());
+    // std::vector<casadi::DM> arm_u_max(uvms_world[agent_id].u_max.begin() + 6, uvms_world[agent_id].u_max.end());
 
-    arm_opt_control_argument = {
-        manipulator_states,
-        arm_optimal_control_params,
-        inv_arm_H_,
-        arm_H_.at(0),
-        arm_B_.at(0),
-        arm_q_ref,   // q_ref
-        arm_dq_ref,  // dq_ref
-        arm_ddq_ref, // ddq_ref
-        arm_J_ned,
-        arm_J_REF_ned,
-        time_seconds,
-        arm_u_min,
-        arm_u_max};
+    // arm_opt_control_argument = {
+    //     manipulator_states,
+    //     arm_optimal_control_params,
+    //     inv_arm_H_,
+    //     arm_H_.at(0),
+    //     arm_B_.at(0),
+    //     arm_q_ref,   // q_ref
+    //     arm_dq_ref,  // dq_ref
+    //     arm_ddq_ref, // ddq_ref
+    //     arm_J_ned,
+    //     arm_J_REF_ned,
+    //     time_seconds,
+    //     arm_u_min,
+    //     arm_u_max};
 
-    arm_optimal_command = fun_service.arm_optimal_controller(arm_opt_control_argument);
+    // arm_optimal_command = fun_service.arm_optimal_controller(arm_opt_control_argument);
 
-    std::copy(arm_optimal_command[0].nonzeros().begin(), arm_optimal_command[0].nonzeros().end(),
-              uvms_world[agent_id].force_input.begin() + 6);
+    // std::copy(arm_optimal_command[0].nonzeros().begin(), arm_optimal_command[0].nonzeros().end(),
+    //           uvms_world[agent_id].force_input.begin() + 6);
 
-    uvms_world[agent_id].lyapunov_energy = arm_optimal_command.at(1).nonzeros()[0];
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////compute base force//////////////////////////////////////////////////////////////////////////////////
-    std::vector<casadi::DM> arm_torques_(uvms_world[agent_id].force_input.begin() + 6,
-                                         uvms_world[agent_id].force_input.end() - 1);
+    // uvms_world[agent_id].lyapunov_energy = arm_optimal_command.at(1).nonzeros()[0];
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // /////////////////////////compute base force//////////////////////////////////////////////////////////////////////////////////
+    // std::vector<casadi::DM> arm_torques_(uvms_world[agent_id].force_input.begin() + 6,
+    //                                      uvms_world[agent_id].force_input.end() - 1);
 
-    std::vector<double> q_min(joint_min.begin() + 6, joint_min.begin() + 10);
-    std::vector<double> q_max(joint_max.begin() + 6, joint_max.begin() + 10);
+    // std::vector<double> q_min(joint_min.begin() + 6, joint_min.begin() + 10);
+    // std::vector<double> q_max(joint_max.begin() + 6, joint_max.begin() + 10);
 
-    arm_f_base_argument = {manipulator_states, arm_optimal_command[0], manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To, arm_noise};
+    // arm_f_base_argument = {manipulator_states, arm_optimal_command[0], manipulator_parameters, dt, q_min, q_max, gravity, base_gravity, base_To, arm_noise};
 
-    base_force = fun_service.f_base(arm_f_base_argument);
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::vector<casadi::DM> vehicle_position_state(uvms_position_state.begin(),
-                                                   uvms_position_state.begin() + 6);
+    // base_force = fun_service.f_base(arm_f_base_argument);
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // std::vector<casadi::DM> vehicle_position_state(uvms_position_state.begin(),
+    //                                                uvms_position_state.begin() + 6);
 
-    std::vector<casadi::DM> vehicle_rpy(uvms_position_state.begin() + 3,
-                                        uvms_position_state.begin() + 6);
+    // std::vector<casadi::DM> vehicle_rpy(uvms_position_state.begin() + 3,
+    //                                     uvms_position_state.begin() + 6);
 
-    std::vector<casadi::DM> vehicle_velocity_state(uvms_velocity_state.begin(),
-                                                   uvms_velocity_state.begin() + 6);
+    // std::vector<casadi::DM> vehicle_velocity_state(uvms_velocity_state.begin(),
+    //                                                uvms_velocity_state.begin() + 6);
 
-    // Build argument containers for vehicle_H and vehicle_B.
-    vehicle_H_argument = {vehicle_parameters};
+    // // Build argument containers for vehicle_H and vehicle_B.
+    // vehicle_H_argument = {vehicle_parameters};
 
-    vehicle_B_argument = {uvms_position_state[2],
-                          vehicle_rpy,
-                          vehicle_velocity_state,
-                          vehicle_parameters,
-                          base_force.at(0)};
+    // vehicle_B_argument = {uvms_position_state[2],
+    //                       vehicle_rpy,
+    //                       vehicle_velocity_state,
+    //                       vehicle_parameters,
+    //                       base_force.at(0)};
 
-    uv_H_ = fun_service.vehicle_H(vehicle_H_argument);
-    uv_B_ = fun_service.vehicle_B(vehicle_B_argument);
+    // uv_H_ = fun_service.vehicle_H(vehicle_H_argument);
+    // uv_B_ = fun_service.vehicle_B(vehicle_B_argument);
 
-    inv_uv_H_ = casadi::DM::solve(uv_H_.at(0), casadi::DM::eye(uv_H_.at(0).size1()));
+    // inv_uv_H_ = casadi::DM::solve(uv_H_.at(0), casadi::DM::eye(uv_H_.at(0).size1()));
 
-    uv_J_ned_argument = {casadi::DM({uvms_world[agent_id].current_position[3],
-                                     uvms_world[agent_id].current_position[4],
-                                     uvms_world[agent_id].current_position[5]})};
+    // uv_J_ned_argument = {casadi::DM({uvms_world[agent_id].current_position[3],
+    //                                  uvms_world[agent_id].current_position[4],
+    //                                  uvms_world[agent_id].current_position[5]})};
 
-    uv_J_ned = fun_service.uv_J_ned(uv_J_ned_argument);
+    // uv_J_ned = fun_service.uv_J_ned(uv_J_ned_argument);
 
-    uv_J_REF_ned_argument = {casadi::DM({uvms_world[agent_id].XF[3],
-                                         uvms_world[agent_id].XF[4],
-                                         uvms_world[agent_id].XF[5]})};
-    uv_J_REF_ned = fun_service.uv_J_ned(uv_J_REF_ned_argument);
+    // uv_J_REF_ned_argument = {casadi::DM({uvms_world[agent_id].XF[3],
+    //                                      uvms_world[agent_id].XF[4],
+    //                                      uvms_world[agent_id].XF[5]})};
+    // uv_J_REF_ned = fun_service.uv_J_ned(uv_J_REF_ned_argument);
 
-    // Define a1_v and a2_v as vectors of casadi::DM
-    std::vector<casadi::DM> uv_a1_v = {2, 2, 35, 2, 2, 2};
-    std::vector<casadi::DM> uv_a2_v = {0.5, 0.5, 5.5, 0.5, 0.5, 0.5};
+    // // Define a1_v and a2_v as vectors of casadi::DM
+    // std::vector<casadi::DM> uv_a1_v = {2, 2, 35, 2, 2, 2};
+    // std::vector<casadi::DM> uv_a2_v = {0.5, 0.5, 5.5, 0.5, 0.5, 0.5};
 
-    // Initialize a12_v and ac_v with the same size as a1_v and a2_v
-    std::vector<casadi::DM> uv_a12_v(uv_a1_v.size());
-    std::vector<casadi::DM> uv_ac_v(uv_a1_v.size());
+    // // Initialize a12_v and ac_v with the same size as a1_v and a2_v
+    // std::vector<casadi::DM> uv_a12_v(uv_a1_v.size());
+    // std::vector<casadi::DM> uv_ac_v(uv_a1_v.size());
 
-    // Perform element-wise sqrt and subtraction using casadi::sqrt
-    for (size_t i = 0; i < uv_a1_v.size(); ++i)
-    {
-        uv_a12_v[i] = casadi::DM::sqrt(uv_a1_v[i] * uv_a2_v[i]) - 1e-8;
-    }
+    // // Perform element-wise sqrt and subtraction using casadi::sqrt
+    // for (size_t i = 0; i < uv_a1_v.size(); ++i)
+    // {
+    //     uv_a12_v[i] = casadi::DM::sqrt(uv_a1_v[i] * uv_a2_v[i]) - 1e-8;
+    // }
 
-    // Perform element-wise division and multiply by 2
-    for (size_t i = 0; i < uv_a12_v.size(); ++i)
-    {
-        uv_ac_v[i] = 2 * (uv_a12_v[i] / uv_a2_v[i]);
-    }
+    // // Perform element-wise division and multiply by 2
+    // for (size_t i = 0; i < uv_a12_v.size(); ++i)
+    // {
+    //     uv_ac_v[i] = 2 * (uv_a12_v[i] / uv_a2_v[i]);
+    // }
 
-    // Define epsilon_t correctly
-    double uv_epsilon_t = 0.0;
+    // // Define epsilon_t correctly
+    // double uv_epsilon_t = 0.0;
 
-    // Prepare optimal_control_params using vertcat as a free function
-    // Flatten the vectors into a single vector of casadi::DM
-    std::vector<casadi::DM> uv_vertcat_args;
-    uv_vertcat_args.insert(uv_vertcat_args.end(), uv_a1_v.begin(), uv_a1_v.end());
-    uv_vertcat_args.insert(uv_vertcat_args.end(), uv_a2_v.begin(), uv_a2_v.end());
-    uv_vertcat_args.insert(uv_vertcat_args.end(), uv_a12_v.begin(), uv_a12_v.end());
-    uv_vertcat_args.insert(uv_vertcat_args.end(), uv_ac_v.begin(), uv_ac_v.end());
-    uv_vertcat_args.emplace_back(uv_epsilon_t); // Convert epsilon_t to casadi::DM implicitly
+    // // Prepare optimal_control_params using vertcat as a free function
+    // // Flatten the vectors into a single vector of casadi::DM
+    // std::vector<casadi::DM> uv_vertcat_args;
+    // uv_vertcat_args.insert(uv_vertcat_args.end(), uv_a1_v.begin(), uv_a1_v.end());
+    // uv_vertcat_args.insert(uv_vertcat_args.end(), uv_a2_v.begin(), uv_a2_v.end());
+    // uv_vertcat_args.insert(uv_vertcat_args.end(), uv_a12_v.begin(), uv_a12_v.end());
+    // uv_vertcat_args.insert(uv_vertcat_args.end(), uv_ac_v.begin(), uv_ac_v.end());
+    // uv_vertcat_args.emplace_back(uv_epsilon_t); // Convert epsilon_t to casadi::DM implicitly
 
-    uv_optimal_control_params = casadi::DM::vertcat(uv_vertcat_args);
+    // uv_optimal_control_params = casadi::DM::vertcat(uv_vertcat_args);
 
-    // Convert optimal_control_params to string using the helper function
-    std::string uv_params_str = dm_to_string(uv_optimal_control_params);
+    // // Convert optimal_control_params to string using the helper function
+    // std::string uv_params_str = dm_to_string(uv_optimal_control_params);
 
-    // Log the optimal_control_params correctly
-    RCLCPP_DEBUG(
-        logger,
-        "Got optimal parameters: %s",
-        uv_params_str.c_str());
+    // // Log the optimal_control_params correctly
+    // RCLCPP_DEBUG(
+    //     logger,
+    //     "Got optimal parameters: %s",
+    //     uv_params_str.c_str());
 
-    std::vector<casadi::DM> vehicle_states;
-    vehicle_states.reserve(12);
-    vehicle_states.insert(vehicle_states.end(), vehicle_position_state.begin(), vehicle_position_state.end());
-    vehicle_states.insert(vehicle_states.end(), vehicle_velocity_state.begin(), vehicle_velocity_state.end());
+    // std::vector<casadi::DM> vehicle_states;
+    // vehicle_states.reserve(12);
+    // vehicle_states.insert(vehicle_states.end(), vehicle_position_state.begin(), vehicle_position_state.end());
+    // vehicle_states.insert(vehicle_states.end(), vehicle_velocity_state.begin(), vehicle_velocity_state.end());
 
-    std::vector<casadi::DM> vehicle_q_ref(uvms_world[agent_id].XF.begin(), uvms_world[agent_id].XF.begin() + 6);
-    std::vector<casadi::DM> vehicle_dq_ref(uvms_world[agent_id].VF.begin(), uvms_world[agent_id].VF.begin() + 6);
-    std::vector<casadi::DM> vehicle_ddq_ref(uvms_world[agent_id].AF.begin(), uvms_world[agent_id].AF.begin() + 6);
+    // std::vector<casadi::DM> vehicle_q_ref(uvms_world[agent_id].XF.begin(), uvms_world[agent_id].XF.begin() + 6);
+    // std::vector<casadi::DM> vehicle_dq_ref(uvms_world[agent_id].VF.begin(), uvms_world[agent_id].VF.begin() + 6);
+    // std::vector<casadi::DM> vehicle_ddq_ref(uvms_world[agent_id].AF.begin(), uvms_world[agent_id].AF.begin() + 6);
 
-    std::vector<casadi::DM> vehicle_u_min(uvms_world[agent_id].u_min.begin(), uvms_world[agent_id].u_min.begin() + 6);
-    std::vector<casadi::DM> vehicle_u_max(uvms_world[agent_id].u_max.begin(), uvms_world[agent_id].u_max.begin() + 6);
+    // std::vector<casadi::DM> vehicle_u_min(uvms_world[agent_id].u_min.begin(), uvms_world[agent_id].u_min.begin() + 6);
+    // std::vector<casadi::DM> vehicle_u_max(uvms_world[agent_id].u_max.begin(), uvms_world[agent_id].u_max.begin() + 6);
 
-    uv_opt_control_argument = {
-        vehicle_states,
-        uv_optimal_control_params,
-        inv_uv_H_,
-        uv_H_.at(0),
-        uv_B_.at(0),
-        vehicle_q_ref,   // q_ref
-        vehicle_dq_ref,  // dq_ref
-        vehicle_ddq_ref, // ddq_ref
-        uv_J_ned.at(0),
-        uv_J_REF_ned.at(0),
-        time_seconds,
-        vehicle_u_min,
-        vehicle_u_max};
+    // uv_opt_control_argument = {
+    //     vehicle_states,
+    //     uv_optimal_control_params,
+    //     inv_uv_H_,
+    //     uv_H_.at(0),
+    //     uv_B_.at(0),
+    //     vehicle_q_ref,   // q_ref
+    //     vehicle_dq_ref,  // dq_ref
+    //     vehicle_ddq_ref, // ddq_ref
+    //     uv_J_ned.at(0),
+    //     uv_J_REF_ned.at(0),
+    //     time_seconds,
+    //     vehicle_u_min,
+    //     vehicle_u_max};
 
-    uv_optimal_command = fun_service.uv_optimal_controller(uv_opt_control_argument);
+    // uv_optimal_command = fun_service.uv_optimal_controller(uv_opt_control_argument);
 
-    std::copy(uv_optimal_command[0].nonzeros().begin(), uv_optimal_command[0].nonzeros().end(),
-              uvms_world[agent_id].force_input.begin());
+    // std::copy(uv_optimal_command[0].nonzeros().begin(), uv_optimal_command[0].nonzeros().end(),
+    //           uvms_world[agent_id].force_input.begin());
 
-    uvms_world[agent_id].lyapunov_energy += uv_optimal_command.at(1).nonzeros()[0];
-    // Log the current Lyapunov energy
-    RCLCPP_DEBUG(logger, "Agent %d Lyapunov energy: %f", agent_id, uvms_world[agent_id].lyapunov_energy);
+    // uvms_world[agent_id].lyapunov_energy += uv_optimal_command.at(1).nonzeros()[0];
+    // // Log the current Lyapunov energy
+    // RCLCPP_DEBUG(logger, "Agent %d Lyapunov energy: %f", agent_id, uvms_world[agent_id].lyapunov_energy);
 
     return controller_interface::return_type::OK;
 };
@@ -556,9 +558,8 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<double> q_min(joint_min.begin() + 6, joint_min.begin() + 10);
     std::vector<double> q_max(joint_max.begin() + 6, joint_max.begin() + 10);
 
-    std::vector<casadi::DM> noise = {0.0, 0.0, 0.0, 0.0};
-
-    arm_simulate_argument = {arm_state, arm_torques_, manipulator_parameters, dt, q_min, q_max, gravity, base_To, noise};
+    casadi::DM payload = 0.0;
+    arm_simulate_argument = {arm_state, arm_torques_, dt, gravity, payload, manipulator_parameters};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     // arm_base_f_ext = arm_sim.at(1).nonzeros();

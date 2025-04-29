@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <casadi/casadi.hpp>
+
 const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12815000e+02, 1.14800000e+02, 0.00000000e+00,
                                                             0.00000000e+00, 2.00000000e-02, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 1.60000000e-01, 1.60000000e-01, 1.60000000e-01,
@@ -32,3 +33,8 @@ const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00};
+const std::vector<casadi::DM> viscous = {5, 5, 5, 5};
+const std::vector<casadi::DM> coulomb = {0.0, 0.0, 0.0, 0.0};
+const std::vector<casadi::DM> I_Grotor = {3, 3, 3, 3};
+const casadi::DM k = 50.0;
+const casadi::DM gravity = -9.81;
