@@ -33,8 +33,9 @@ const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00};
-const std::vector<casadi::DM> viscous = {5, 5, 5, 5};
-const std::vector<casadi::DM> coulomb = {0.0, 0.0, 0.0, 0.0};
-const std::vector<casadi::DM> I_Grotor = {3, 3, 3, 3};
-const casadi::DM k = 50.0;
+// ── Direction-dependent coefficients  (fwd0 … fwd3, rev0 … rev3) ────────────────
+const std::vector<casadi::DM> viscous   = { 5,5,5,5,   5,5,5,5 };
+const std::vector<casadi::DM> coulomb   = { 0,0,0,0,   0,0,0,0 };
+const std::vector<casadi::DM> I_Grotor  = { 3,3,3,3,   3,3,3,3 };
+const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0};
 const casadi::DM gravity = -9.81;
