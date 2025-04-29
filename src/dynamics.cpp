@@ -42,7 +42,7 @@ const std::vector<casadi::DM> viscous   = { 5,5,5,5,   5,5,5,5 };
 const std::vector<casadi::DM> coulomb   = { 0,0,0,0,   0,0,0,0 };
 const std::vector<casadi::DM> I_Grotor  = { 3,3,3,3,   3,3,3,3 };
 
-const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0};
+const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0,  50.0, 50.0, 50.0, 50.0};
 const casadi::DM gravity = -9.81;
 #endif
 
