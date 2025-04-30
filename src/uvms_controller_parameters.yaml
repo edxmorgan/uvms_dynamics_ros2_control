@@ -41,6 +41,16 @@ uvms_controller:
         not_empty<>: []
         fixed_size<>: [3]
 
+    payload_topic_interface:
+      type: string_array
+      description: "subscribe_ payload_info map parameter with struct name"
+      read_only: true
+      validation:
+        not_empty<>: []
+        unique<>: []
+        fixed_size<>: [4]
+
+
   __map_joints:
     name:
       type: string
@@ -103,6 +113,4 @@ uvms_controller:
         not_empty<>: []
         unique<>: []
         size_lt<>: [9]
-
- 
 

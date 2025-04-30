@@ -124,6 +124,20 @@ namespace uvms_controller
       std::string base_TF_str = vectorToString(uvms_agent.uvms_base_TF_);
       RCLCPP_INFO(get_node()->get_logger(), "base_TF_ --> [%s]", base_TF_str.c_str());
 
+      if (params_.agents_map.at(agent_).payload_topic_interface.empty())
+      {
+        RCLCPP_ERROR(get_node()->get_logger(), "'payload_topic_interface' parameter was empty");
+        return controller_interface::CallbackReturn::ERROR;
+      }
+      std::vector<std::string> payload_property_topic_interface_ = params_.agents_map.at(agent_).payload_topic_interface;
+      for (const auto &payload_prop_interface_ : payload_property_topic_interface_)
+      {
+        std::string interface_string = std::string(payload_prop_interface_);
+        state_interface_types_.push_back(interface_string);
+        uvms_agent.payloadSubscriber.push_back(state_index);
+        RCLCPP_INFO(get_node()->get_logger(), "uvms_pose_topic_interface Registered [%d] --> %s", state_index++, interface_string.c_str());
+      }
+      
       for (const auto &joint_ : joints_)
       {
         // command interfaces
@@ -259,6 +273,7 @@ namespace uvms_controller
         }
         // ##############################################################################################################################
       }
+
       model_dynamics.uvms_world.push_back(uvms_agent);
       idx++;
       RCLCPP_INFO(get_node()->get_logger(), "uvms_base_TF_ count : %zu ", uvms_agent.uvms_base_TF_.size());
@@ -267,6 +282,7 @@ namespace uvms_controller
       RCLCPP_INFO(get_node()->get_logger(), "vel subscriber count : %zu ", uvms_agent.velSubscriber.size());
       RCLCPP_INFO(get_node()->get_logger(), "vel commander count : %zu ", uvms_agent.velCommander.size());
       RCLCPP_INFO(get_node()->get_logger(), "effort commander count : %zu ", uvms_agent.effortCommander.size());
+      RCLCPP_INFO(get_node()->get_logger(), "payload subscriber count : %zu ", uvms_agent.payloadSubscriber.size());
     };
     n = model_dynamics.uvms_world.size();
     if (n != agents_.size())

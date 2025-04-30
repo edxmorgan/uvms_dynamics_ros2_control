@@ -560,7 +560,20 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<double> q_min(joint_min.begin() + 6, joint_min.begin() + 10);
     std::vector<double> q_max(joint_max.begin() + 6, joint_max.begin() + 10);
 
-    casadi::DM payload_weight = 19.62;
+    double payload_mass = uvms_world[agent_id].payload_properties[0];
+    double payload_Ixx = uvms_world[agent_id].payload_properties[1];
+    double payload_Iyy = uvms_world[agent_id].payload_properties[2];
+    double payload_Izz = uvms_world[agent_id].payload_properties[3];
+
+    std::vector<casadi::DM> payload_props = {payload_mass, payload_Ixx, payload_Iyy, payload_Izz};
+
+    RCLCPP_DEBUG(
+        logger,
+        "Got payload properties: %f,%f,%f,%f",
+        payload_mass,
+        payload_Ixx,
+        payload_Iyy,
+        payload_Izz);
 
     std::vector<casadi::DM> lower_joint_limit(
         joint_min.begin() + 6,
@@ -573,7 +586,7 @@ void casadi_uvms::Dynamics::simulate(
       );
       
 
-    arm_simulate_argument = {arm_state, arm_torques_, dt, gravity, payload_weight, manipulator_parameters, lower_joint_limit, upper_joint_limit};
+    arm_simulate_argument = {arm_state, arm_torques_, dt, gravity, payload_props, manipulator_parameters, lower_joint_limit, upper_joint_limit};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     // arm_base_f_ext = arm_sim.at(1).nonzeros();

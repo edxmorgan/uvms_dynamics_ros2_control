@@ -107,6 +107,8 @@ namespace casadi_uvms
             std::vector<double> pose_rot;
             std::vector<double> pose_trl;
 
+            
+
             std::vector<double> current_position = std::vector<double>(12);
             std::vector<double> prev_position = std::vector<double>(12);
             std::vector<double> next_position = std::vector<double>(12);
@@ -120,6 +122,9 @@ namespace casadi_uvms
             std::vector<double> model_p = std::vector<double>(12); // model parameters
             std::vector<double> flow_velocity = std::vector<double>(6, 0);
             std::vector<double> uvms_base_TF_;
+
+            std::vector<double> payload_properties = std::vector<double>(4, 0);
+
             std::vector<int> poseSubscriber;
             std::vector<int> poseCommander;
             std::vector<int> velSubscriber;
@@ -127,6 +132,7 @@ namespace casadi_uvms
             std::vector<int> velCommander;
             std::vector<int> accCommander;
             std::vector<int> effortCommander;
+            std::vector<int> payloadSubscriber;
             std::vector<double> sum_ki_buffer = std::vector<double>(10, 0);
 
             std::vector<double> XF= std::vector<double>(10, 0);

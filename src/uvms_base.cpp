@@ -242,6 +242,7 @@ namespace uvms_controller
         uvms.current_position = get_state_values(uvms.poseSubscriber, 11);
         uvms.current_velocity = get_state_values(uvms.velSubscriber, 11);
       }
+      uvms.payload_properties = get_state_values(uvms.payloadSubscriber, 4);
 
       if ((*uvms_commands)->command_type.at(uvms.id) == "force")
       {
