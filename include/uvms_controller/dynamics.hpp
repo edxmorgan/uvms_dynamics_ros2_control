@@ -95,8 +95,6 @@ namespace casadi_uvms
 
         std::vector<DM> arm_f_base_argument;
         std::vector<DM> base_force;
-        std::vector<double> joint_min;
-        std::vector<double> joint_max;
         std::vector<double> arm_noise;
 
 

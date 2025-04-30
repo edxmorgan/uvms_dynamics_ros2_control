@@ -38,14 +38,13 @@ const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12
                                                             0.00000000e+00, 0.00000000e+00, 0.00000000e+00};
 
 // ── Direction-dependent coefficients  (fwd0 … fwd3, rev0 … rev3) ────────────────
+const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0,  50.0, 50.0, 50.0, 50.0};
 const std::vector<casadi::DM> viscous   = { 5,5,5,5,   5,5,5,5 };
 const std::vector<casadi::DM> coulomb   = { 0,0,0,0,   0,0,0,0 };
-const std::vector<casadi::DM> static_rest   = { 0,0,0,0,   0,0,0,0 };
 const std::vector<casadi::DM> I_Grotor  = { 3,3,3,3,   3,3,3,3 };
-
-const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0,  50.0, 50.0, 50.0, 50.0};
-const casadi::DM link_gravity = -9.81;
-const casadi::DM payload_gravity = -9.81;
+const casadi::DM gravity = -9.81;
+const std::vector<casadi::DM> joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
+const std::vector<casadi::DM> joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
 #endif
 
 void casadi_uvms::Dynamics::init_dynamics()
@@ -77,14 +76,10 @@ void casadi_uvms::Dynamics::init_dynamics()
     manipulator_parameters.insert(manipulator_parameters.end(), sgn_qdot_k.begin(), sgn_qdot_k.end());
     manipulator_parameters.insert(manipulator_parameters.end(), viscous.begin(), viscous.end());
     manipulator_parameters.insert(manipulator_parameters.end(), coulomb.begin(), coulomb.end());
-    manipulator_parameters.insert(manipulator_parameters.end(), static_rest.begin(), static_rest.end());
     manipulator_parameters.insert(manipulator_parameters.end(), I_Grotor.begin(), I_Grotor.end());
 
     vehicle_parameters = private_vehicle_parameters;
     base_To = {3.142, 0.0, 0.0, 0.19, 0.0, -0.12};
-
-    joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
-    joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
 };
 // -DUSE_PRIVATE_PARAMS
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -565,8 +560,20 @@ void casadi_uvms::Dynamics::simulate(
     std::vector<double> q_min(joint_min.begin() + 6, joint_min.begin() + 10);
     std::vector<double> q_max(joint_max.begin() + 6, joint_max.begin() + 10);
 
-    casadi::DM payload = 0.4;
-    arm_simulate_argument = {arm_state, arm_torques_, dt, link_gravity, payload_gravity, payload, manipulator_parameters};
+    casadi::DM payload_weight = 19.62;
+
+    std::vector<casadi::DM> lower_joint_limit(
+        joint_min.begin() + 6,
+        joint_min.end()
+      );
+      
+      std::vector<casadi::DM> upper_joint_limit(
+        joint_max.begin() + 6,
+        joint_max.end()
+      );
+      
+
+    arm_simulate_argument = {arm_state, arm_torques_, dt, gravity, payload_weight, manipulator_parameters, lower_joint_limit, upper_joint_limit};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     // arm_base_f_ext = arm_sim.at(1).nonzeros();
