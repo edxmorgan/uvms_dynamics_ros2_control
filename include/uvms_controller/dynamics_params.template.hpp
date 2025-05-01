@@ -19,6 +19,7 @@
 #include <vector>
 #include <casadi/casadi.hpp>
 
+// these are toy parameters and small sim2real gap will require tuning these parameters
 const std::vector<casadi::DM> private_vehicle_parameters = {1.15000000e+01, 1.12815000e+02, 1.14800000e+02, 0.00000000e+00,
                                                             0.00000000e+00, 2.00000000e-02, 0.00000000e+00, 0.00000000e+00,
                                                             0.00000000e+00, 1.60000000e-01, 1.60000000e-01, 1.60000000e-01,
@@ -41,3 +42,10 @@ const std::vector<casadi::DM> I_Grotor  = { 3,3,3,3,   3,3,3,3 };
 const casadi::DM gravity = -9.81;
 const std::vector<casadi::DM> joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
 const std::vector<casadi::DM> joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
+const std::vector<casadi::DM> u_min = {-1, -1, -1, -5, -5, -1, -2.83664, -0.629139, -0.518764, -0.54};
+const std::vector<casadi::DM> u_max = {1, 1, 2, 5, 5, 1, 2.83664, 0.629139, 0.518764, 0.54};
+
+const std::vector<casadi::DM> Kp = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 2.0, 2.0, 2.0, 1.0};
+const std::vector<casadi::DM> Ki = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.01, 0.01};
+const std::vector<casadi::DM> Kd = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1};
+const std::vector<casadi::DM> EPS_TORQUE = {5e-1, 5e-1, 5e-1, 5e-1};

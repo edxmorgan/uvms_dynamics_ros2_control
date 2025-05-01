@@ -139,14 +139,7 @@ namespace casadi_uvms
             std::vector<double> VF= std::vector<double>(10, 0);
             std::vector<double> AF= std::vector<double>(10, 0);
 
-            std::vector<double> Kp;
-            std::vector<double> Ki;
-            std::vector<double> Kd;
             std::vector<double> pid_commands = std::vector<double>(10, 0);
-            std::vector<double> u_min;
-            std::vector<double> u_max;
-            std::vector<double> joint_min;
-            std::vector<double> joint_max;
             bool grabber_open;
             bool initialised_real_state = true;
             double lyapunov_energy;
