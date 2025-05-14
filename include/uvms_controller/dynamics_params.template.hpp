@@ -39,6 +39,7 @@ const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0,  50.0, 50.0,
 const std::vector<casadi::DM> viscous   = { 5,5,5,5,   5,5,5,5 };
 const std::vector<casadi::DM> coulomb   = { 0,0,0,0,   0,0,0,0 };
 const std::vector<casadi::DM> I_Grotor  = { 3,3,3,3,   3,3,3,3 };
+const casadi::DM link_gravity = -9.81;
 const casadi::DM gravity = -9.81;
 const std::vector<casadi::DM> joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
 const std::vector<casadi::DM> joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};

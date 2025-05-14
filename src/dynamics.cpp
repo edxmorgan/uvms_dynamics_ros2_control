@@ -42,6 +42,7 @@ const std::vector<casadi::DM> sgn_qdot_k = {50.0, 50.0, 50.0, 50.0, 50.0, 50.0, 
 const std::vector<casadi::DM> viscous = {5, 5, 5, 5, 5, 5, 5, 5};
 const std::vector<casadi::DM> coulomb = {0, 0, 0, 0, 0, 0, 0, 0};
 const std::vector<casadi::DM> I_Grotor = {3, 3, 3, 3, 3, 3, 3, 3};
+const casadi::DM link_gravity = -9.81;
 const casadi::DM gravity = -9.81;
 const std::vector<casadi::DM> joint_min = {-1000, -1000, -1000, -1000, -1000, -1000, 1, 0.01, 0.01, 0.01};
 const std::vector<casadi::DM> joint_max = {1000, 1000, 1000, 1000, 1000, 1000, 5.50, 3.40, 3.40, 5.70};
@@ -615,7 +616,7 @@ void casadi_uvms::Dynamics::simulate(
         joint_max.end());
 
     arm_simulate_argument = {arm_state, arm_torques_,
-         dt, gravity, payload_props, manipulator_parameters, lower_joint_limit, upper_joint_limit, EPS_TORQUE};
+         dt,link_gravity, gravity, payload_props, manipulator_parameters, lower_joint_limit, upper_joint_limit, EPS_TORQUE};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     // arm_base_f_ext = arm_sim.at(1).nonzeros();
