@@ -24,6 +24,7 @@
 #include "controller_interface/controller_interface.hpp"
 #include "uvms_interfaces/msg/command.hpp"
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tuple>
 
 namespace casadi_uvms
 {
@@ -155,7 +156,7 @@ namespace casadi_uvms
 
         void init_dynamics();
 
-        std::pair<std::vector<DM>, DM> publish_forward_kinematics(
+        std::tuple<std::vector<DM>, std::vector<DM>, DM> publish_forward_kinematics(
             const rclcpp::Logger &logger,
             const rclcpp::Clock::SharedPtr &clock,
             const rclcpp::Time &time,

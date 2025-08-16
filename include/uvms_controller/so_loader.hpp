@@ -33,6 +33,7 @@ namespace casadi_uvms
         Function uv_dynamics; // standalone uv dynamics
         Function arm_dynamics; // arm standalone dynamics
         Function forward_kinematics; // forward kinematics
+        Function forward_kinematics_com; // forward kinematics in com
         Function pid_controller; // whole-body PID controller
         Function uv_G; // restoring force acting on uv
         Function uv_J_ned; //NED Transform matrix

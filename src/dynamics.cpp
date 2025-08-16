@@ -65,6 +65,7 @@ void casadi_uvms::Dynamics::init_dynamics()
 
     fun_service.pid_controller = fun_service.load_casadi_fun("pid", "libPID.so");
     fun_service.forward_kinematics = fun_service.load_casadi_fun("fkeval", "libFK.so");
+    fun_service.forward_kinematics_com = fun_service.load_casadi_fun("fkcomeval", "libFKcom.so");
     fun_service.uv_G = fun_service.load_casadi_fun("G_n", "libg.so");
     fun_service.uv_J_ned = fun_service.load_casadi_fun("J_", "libJk.so");
 
@@ -90,7 +91,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     // base_To = {3.142, 0.0, 0.0, 0.19, 0.0, -0.12};
 };
 // -DUSE_PRIVATE_PARAMS
-std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
+std::tuple<std::vector<DM>, std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
     const rclcpp::Logger & /*logger*/,
     const rclcpp::Clock::SharedPtr & /*clock*/,
     const rclcpp::Time & /*time*/,
@@ -125,7 +126,15 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     std::vector<DM> fk_argumt = {joint_positions, base_T, world_T};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
 
-    return {T_i, state_position};
+    std::vector<DM> c_sample = {5e-12, -1e-12, 16e-12,
+    73.563e-12, -0.091e-12, -0.734e-12,
+    17e-12, -26e-12, 2e-12,
+    -0.030e-12, -12e-12, -98e-12};
+
+    std::vector<DM> fkcom_argumt = {joint_positions, c_sample, base_T, world_T};
+    std::vector<DM> T_com_i = fun_service.forward_kinematics_com(fkcom_argumt);
+
+    return std::make_tuple(T_i, T_com_i, state_position);
 };
 
 controller_interface::return_type casadi_uvms::Dynamics::force_controller(

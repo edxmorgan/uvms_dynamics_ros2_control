@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 #include "uvms_controller/uvms_base.hpp"
 
 #include <algorithm>
@@ -276,34 +275,64 @@ namespace uvms_controller
       // };
       model_dynamics.simulate(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
 
-      std::pair<std::vector<DM>, DM> fw_result = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
-
-      std::vector<DM> T_i = fw_result.first;
-      DM qned = fw_result.second;
+      auto [T_i, T_com_i, qned] = model_dynamics.publish_forward_kinematics(get_node()->get_logger(), get_node()->get_clock(), time, period, uvms.id);
 
       if (realtime_frame_transform_publisher_->trylock())
       {
-        auto &transforms = realtime_frame_transform_publisher_->msg_.transforms;
-        for (size_t i = 0; i < T_i.size(); ++i)
+        auto &msg = realtime_frame_transform_publisher_->msg_;
+        auto &transforms = msg.transforms;
+
+        const std::string base = uvms.prefix + "base_link";
+        const size_t nj = T_i.size();
+        const size_t nc = T_com_i.size();
+
+        transforms.clear();
+        transforms.resize(nj + nc);
+
+        // Joints
+        for (size_t i = 0; i < nj; ++i)
         {
-          auto &jointTransform = transforms[i];
-          jointTransform.header.stamp = time;
-          jointTransform.header.frame_id = uvms.prefix + "base_link";
-          jointTransform.child_frame_id = uvms.prefix + "joint_" + std::to_string(i);
+          auto &t = transforms[i];
+          t.header.stamp = time;
+          t.header.frame_id = base;
+          t.child_frame_id = uvms.prefix + "joint_" + std::to_string(i);
 
-          jointTransform.transform.translation.x = T_i[i].nonzeros()[0];
-          jointTransform.transform.translation.y = T_i[i].nonzeros()[1];
-          jointTransform.transform.translation.z = T_i[i].nonzeros()[2];
+          const auto &v = T_i[i].nonzeros(); // [x y z qw qx qy qz]
+          t.transform.translation.x = v[0];
+          t.transform.translation.y = v[1];
+          t.transform.translation.z = v[2];
 
-          q_orig_joint.setW(T_i[i].nonzeros()[3]);
-          q_orig_joint.setX(T_i[i].nonzeros()[4]);
-          q_orig_joint.setY(T_i[i].nonzeros()[5]);
-          q_orig_joint.setZ(T_i[i].nonzeros()[6]);
-
-          jointTransform.transform.rotation = tf2::toMsg(q_orig_joint);
+          tf2::Quaternion q;
+          q.setW(v[3]);
+          q.setX(v[4]);
+          q.setY(v[5]);
+          q.setZ(v[6]);
+          t.transform.rotation = tf2::toMsg(q);
         }
+
+        // COMs
+        for (size_t i = 0; i < nc; ++i)
+        {
+          auto &t = transforms[nj + i];
+          t.header.stamp = time;
+          t.header.frame_id = base;
+          t.child_frame_id = uvms.prefix + "link_com_" + std::to_string(i);
+
+          const auto &v = T_com_i[i].nonzeros(); // [x y z qw qx qy qz]
+          t.transform.translation.x = v[0];
+          t.transform.translation.y = v[1];
+          t.transform.translation.z = v[2];
+
+          tf2::Quaternion q;
+          q.setW(v[3]);
+          q.setX(v[4]);
+          q.setY(v[5]);
+          q.setZ(v[6]);
+          t.transform.rotation = tf2::toMsg(q);
+        }
+
         realtime_frame_transform_publisher_->unlockAndPublish();
-      };
+      }
 
       set_command_values(uvms.poseCommander, uvms.next_position, 11);
       set_command_values(uvms.velCommander, uvms.next_velocity, 11);
