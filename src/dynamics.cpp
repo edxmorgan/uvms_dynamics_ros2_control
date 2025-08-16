@@ -87,7 +87,7 @@ void casadi_uvms::Dynamics::init_dynamics()
     manipulator_parameters.insert(manipulator_parameters.end(), I_Grotor.begin(), I_Grotor.end());
 
     vehicle_parameters = private_vehicle_parameters;
-    base_To = {3.142, 0.0, 0.0, 0.19, 0.0, -0.12};
+    // base_To = {3.142, 0.0, 0.0, 0.19, 0.0, -0.12};
 };
 // -DUSE_PRIVATE_PARAMS
 std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics(
@@ -97,7 +97,8 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
     const rclcpp::Duration & /*period*/,
     int &agent_id)
 {
-    DM base_T = DM::vertcat({DM(3.142), DM(0.000), DM(0.000), DM(0.190), DM(0.000), DM(-0.120)});
+    DM base_T = DM::vertcat({0.190, 0.000, -0.120, 3.142, 0.000, 0.000});
+    DM world_T = DM::vertcat({0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
 
     double x = uvms_world[agent_id].current_position[0];
     double y = uvms_world[agent_id].current_position[1];
@@ -116,18 +117,12 @@ std::pair<std::vector<DM>, DM> casadi_uvms::Dynamics::publish_forward_kinematics
                                      DM(q_orig_base.getY()),
                                      DM(q_orig_base.getZ())});
 
-    DM generalized_coordinates = DM::vertcat({0.0,
-                                              0.0,
-                                              0.0,
-                                              0.0,
-                                              0.0,
-                                              0.0,
-                                              DM(uvms_world[agent_id].current_position[6]),
-                                              DM(uvms_world[agent_id].current_position[7]),
-                                              DM(uvms_world[agent_id].current_position[8]),
-                                              DM(uvms_world[agent_id].current_position[9])});
+    DM joint_positions = DM::vertcat({DM(uvms_world[agent_id].current_position[6]),
+                                      DM(uvms_world[agent_id].current_position[7]),
+                                      DM(uvms_world[agent_id].current_position[8]),
+                                      DM(uvms_world[agent_id].current_position[9])});
 
-    std::vector<DM> fk_argumt = {generalized_coordinates, base_T};
+    std::vector<DM> fk_argumt = {joint_positions, base_T, world_T};
     std::vector<DM> T_i = fun_service.forward_kinematics(fk_argumt);
 
     return {T_i, state_position};
@@ -615,8 +610,82 @@ void casadi_uvms::Dynamics::simulate(
         joint_max.begin() + 6,
         joint_max.end());
 
-    arm_simulate_argument = {arm_state, arm_torques_,
-         dt,link_gravity, gravity, payload_props, manipulator_parameters, lower_joint_limit, upper_joint_limit, EPS_TORQUE};
+    // arm_simulate_argument = {arm_state, arm_torques_,
+    //                          dt, link_gravity, gravity, payload_props, manipulator_parameters, lower_joint_limit, upper_joint_limit, EPS_TORQUE};
+
+    std::vector<DM> rigid_p = {0.005,
+     -0.001,
+     0.016,
+     0.073563,
+     -9.1e-05,
+     -0.000734,
+     0.017,
+     -0.026,
+     0.002,
+     -3e-05,
+     -0.003,
+     -0.098,
+     0.194,
+     0.429,
+     0.115,
+     0.333,
+     0.01,
+     0.01,
+     0.01,
+     0,
+     0,
+     0,
+     0.01,
+     0.01,
+     0.01,
+     0,
+     0,
+     0,
+     0.01,
+     0.01,
+     0.01,
+     0,
+     0,
+     0,
+     0.01,
+     0.01,
+     0.01,
+     0,
+     0,
+     0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0,
+     0,
+     4.0,
+     0.0,
+     0.0,
+     0.0,
+
+     0.0,
+
+     0.19,
+     0.0,
+     -0.12,
+
+     3.142,
+     0.0,
+     0.0,
+
+     0.0,
+     1.0,
+     0,
+
+     0,
+     0,
+     0};
+    arm_simulate_argument = {arm_state, arm_torques_, dt, rigid_p};
     arm_sim = fun_service.arm_dynamics(arm_simulate_argument);
     arm_next_states = arm_sim.at(0).nonzeros();
     // arm_base_f_ext = arm_sim.at(1).nonzeros();
